@@ -1,0 +1,56 @@
+entry/src/main/resources/rawfile/data_structure.txt
+  s_0b930614d3db7f::t_44bd775589174b 1-242
+entry/src/main/ets/model/BookshelfManager.ets
+  s_0b930614d3db7f::t_3e0853d3b83177 2-65
+  s_0b930614d3db7f::t_863cef610e8f76 1
+entry/src/main/ets/pages/LibraryPage.ets
+  s_0b930614d3db7f::t_f1c543217ad93d 1
+  s_0b930614d3db7f::t_bf7d02da7b938d 84-91
+  s_0b930614d3db7f::t_2853ae9349aabb 3-28,31-83,92-93,97,99-123
+  s_0b930614d3db7f::t_3a01fd4b4b704b 2
+entry/src/main/resources/rawfile/harmonyos_guide.txt
+  s_0b930614d3db7f::t_a960f514a3a82a 1-105
+entry/src/main/ets/pages/BookDetailPage.ets
+  s_0b930614d3db7f::t_8fa175be8ae840 43
+  s_0b930614d3db7f::t_e40997b01122d8 1-13,18-42,44-169
+  s_0b930614d3db7f::t_709e031626539d 14-17
+entry/src/main/resources/rawfile/deep_arkts.txt
+  s_0b930614d3db7f::t_0ef4b5563cfab7 1-78
+entry/src/main/resources/rawfile/book_list.json
+  s_0b930614d3db7f::t_a4eab47cdab4f8 8,16,24,32,40
+  s_0b930614d3db7f::t_db4fb95410d1a5 1-7,9-15,17-23,25-31,33-39,41-42
+entry/src/main/resources/rawfile/design_patterns.txt
+  s_0b930614d3db7f::t_34b7e8fc0fba76 1-128
+entry/src/main/ets/pages/BookReaderPage.ets
+  s_0b930614d3db7f::t_eec3b990ec2bcb 20
+  s_0b930614d3db7f::t_7cb5e37e5d753b 1-3,9-19,21-92
+  s_0b930614d3db7f::t_e14db852aa7002 4-8
+entry/src/main/resources/base/profile/main_pages.json
+  s_0b930614d3db7f::t_5bec952bc1d4ee 3-5
+entry/src/main/resources/rawfile/js_advanced.txt
+  s_0b930614d3db7f::t_142d70c9dc3399 1-194
+entry/src/main/ets/pages/BookshelfPage.ets
+  s_0b930614d3db7f::t_644d1fda87bb06 1-29,32-101,105,107-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "218a1eae2f850007d9f7768521959bc69ef6fbae",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0b930614d3db7f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fe1e1fe2effeq50whM5TYyOpME",
+        "model": "glm-5"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 16
+    }
+  }
+}
