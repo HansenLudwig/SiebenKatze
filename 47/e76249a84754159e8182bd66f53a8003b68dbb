@@ -1,0 +1,32 @@
+build-profile.json5
+  h_4123ebe5b0541a 9
+entry/src/main/ets/pages/MainPage.ets
+  s_0b930614d3db7f::t_509d959578cda1 6
+entry/src/main/ets/pages/Index.ets
+  s_0b930614d3db7f::t_302103dbc0183c 1,6-7,9-12,16-19,21-24,32
+  h_4123ebe5b0541a 13-15,20
+entry/src/main/resources/base/profile/main_pages.json
+  s_0b930614d3db7f::t_30e19cde14bbc1 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "47e76249a84754159e8182bd66f53a8003b68dbb",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0b930614d3db7f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fe1e1fe2effeq50whM5TYyOpME",
+        "model": "glm-5"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 27
+    }
+  }
+}
