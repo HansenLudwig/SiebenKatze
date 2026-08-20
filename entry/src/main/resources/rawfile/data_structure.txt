@@ -1,0 +1,242 @@
+第一章 数据结构基础
+
+数据结构是计算机存储、组织数据的方式。一个好的数据结构可以带来更高的运行效率和存储效率。
+
+1.1 什么是数据结构
+
+数据结构是指相互之间存在一种或多种特定关系的数据元素的集合。
+
+1.2 数据结构的分类
+
+数据结构可以分为两大类：
+
+1. 线性结构：数组、链表、栈、队列
+2. 非线性结构：树、图、堆
+
+第二章 数组
+
+数组是最基本的数据结构，它是一组相同类型元素的有序集合。
+
+2.1 数组的特性
+
+- 随机访问：可以通过下标直接访问任意元素
+- 固定大小：传统数组的大小在创建时确定
+
+2.2 数组的操作
+
+- 插入元素：O(n)
+- 删除元素：O(n)
+- 查找元素：O(n)或O(log n)（如果有序）
+
+第三章 链表
+
+链表是一种物理存储单元上非连续、非顺序的存储结构。
+
+3.1 单链表
+
+每个节点包含数据和指向下一个节点的指针。
+
+示例：
+
+class Node {
+  constructor(data) {
+    this.data = data;
+    this.next = null;
+  }
+}
+
+class LinkedList {
+  constructor() {
+    this.head = null;
+  }
+  
+  append(data) {
+    const newNode = new Node(data);
+    if (!this.head) {
+      this.head = newNode;
+      return;
+    }
+    let current = this.head;
+    while (current.next) {
+      current = current.next;
+    }
+    current.next = newNode;
+  }
+}
+
+3.2 双向链表
+
+每个节点包含指向前一个和后一个节点的指针。
+
+第四章 栈
+
+栈是一种后进先出（LIFO）的数据结构。
+
+4.1 栈的操作
+
+- push：入栈
+- pop：出栈
+- peek：查看栈顶元素
+- isEmpty：判断栈是否为空
+
+示例：
+
+class Stack {
+  constructor() {
+    this.items = [];
+  }
+  
+  push(element) {
+    this.items.push(element);
+  }
+  
+  pop() {
+    return this.items.pop();
+  }
+  
+  peek() {
+    return this.items[this.items.length - 1];
+  }
+  
+  isEmpty() {
+    return this.items.length === 0;
+  }
+}
+
+第五章 队列
+
+队列是一种先进先出（FIFO）的数据结构。
+
+5.1 队列的操作
+
+- enqueue：入队
+- dequeue：出队
+- front：查看队首元素
+- isEmpty：判断队列是否为空
+
+第六章 树
+
+树是一种非线性数据结构，由节点和边组成。
+
+6.1 二叉树
+
+每个节点最多有两个子节点的树。
+
+6.2 二叉搜索树
+
+左子树的所有节点值小于根节点，右子树的所有节点值大于根节点。
+
+示例：
+
+class TreeNode {
+  constructor(value) {
+    this.value = value;
+    this.left = null;
+    this.right = null;
+  }
+}
+
+class BinarySearchTree {
+  constructor() {
+    this.root = null;
+  }
+  
+  insert(value) {
+    const newNode = new TreeNode(value);
+    if (!this.root) {
+      this.root = newNode;
+      return;
+    }
+    
+    let current = this.root;
+    while (true) {
+      if (value < current.value) {
+        if (!current.left) {
+          current.left = newNode;
+          break;
+        }
+        current = current.left;
+      } else {
+        if (!current.right) {
+          current.right = newNode;
+          break;
+        }
+        current = current.right;
+      }
+    }
+  }
+}
+
+第七章 图
+
+图是由顶点和边组成的数据结构。
+
+7.1 图的表示
+
+- 邻接矩阵
+- 邻接表
+
+7.2 图的遍历
+
+- 深度优先搜索（DFS）
+- 广度优先搜索（BFS）
+
+第八章 排序算法
+
+8.1 冒泡排序
+
+时间复杂度：O(n²)
+
+8.2 快速排序
+
+时间复杂度：O(n log n)
+
+示例：
+
+function quickSort(arr) {
+  if (arr.length <= 1) return arr;
+  
+  const pivot = arr[0];
+  const left = [];
+  const right = [];
+  
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] < pivot) {
+      left.push(arr[i]);
+    } else {
+      right.push(arr[i]);
+    }
+  }
+  
+  return [...quickSort(left), pivot, ...quickSort(right)];
+}
+
+第九章 查找算法
+
+9.1 线性查找
+
+时间复杂度：O(n)
+
+9.2 二分查找
+
+时间复杂度：O(log n)
+
+示例：
+
+function binarySearch(arr, target) {
+  let left = 0;
+  let right = arr.length - 1;
+  
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) {
+      return mid;
+    } else if (arr[mid] < target) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+  
+  return -1;
+}

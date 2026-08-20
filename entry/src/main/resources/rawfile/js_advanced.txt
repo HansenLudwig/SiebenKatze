@@ -1,0 +1,194 @@
+第一章 JavaScript简介
+
+JavaScript是一种轻量级的解释型编程语言，主要用于Web开发。它是Web浏览器的标准脚本语言，也可以用于服务器端开发。
+
+1.1 JavaScript的历史
+
+JavaScript由Brendan Eich在1995年创建，最初名为Mocha，后来改名为LiveScript，最终确定为JavaScript。
+
+1.2 JavaScript的特点
+
+- 解释型语言
+- 动态类型
+- 原型继承
+- 函数式编程支持
+- 异步编程能力
+
+第二章 数据类型
+
+2.1 基本数据类型
+
+JavaScript有七种基本数据类型：
+
+1. Number：数字类型
+2. String：字符串类型
+3. Boolean：布尔类型
+4. undefined：未定义
+5. null：空值
+6. Symbol：符号（ES6新增）
+7. BigInt：大整数（ES2020新增）
+
+2.2 引用数据类型
+
+- Object：对象
+- Array：数组
+- Function：函数
+
+第三章 变量与作用域
+
+3.1 变量声明
+
+使用var、let、const声明变量：
+
+var：函数作用域，存在变量提升
+let：块级作用域，不存在变量提升
+const：声明常量，不可重新赋值
+
+3.2 作用域
+
+JavaScript有全局作用域、函数作用域和块级作用域。
+
+示例：
+
+let globalVar = "全局变量";
+
+function test() {
+  let functionVar = "函数变量";
+  
+  if (true) {
+    let blockVar = "块级变量";
+  }
+}
+
+3.3 闭包
+
+闭包是指有权访问另一个函数作用域中变量的函数。
+
+示例：
+
+function createCounter() {
+  let count = 0;
+  return function() {
+    return ++count;
+  };
+}
+
+const counter = createCounter();
+console.log(counter()); // 1
+console.log(counter()); // 2
+
+第四章 原型与继承
+
+4.1 原型链
+
+每个JavaScript对象都有一个原型对象，对象从原型继承方法和属性。
+
+4.2 构造函数
+
+使用构造函数创建对象：
+
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.sayHello = function() {
+  console.log('Hello, ' + this.name);
+};
+
+const person = new Person('张三');
+person.sayHello();
+
+4.3 ES6类语法
+
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+  
+  sayHello() {
+    console.log('Hello, ' + this.name);
+  }
+}
+
+第五章 异步编程
+
+5.1 回调函数
+
+传统的异步处理方式：
+
+setTimeout(function() {
+  console.log('一秒后执行');
+}, 1000);
+
+5.2 Promise
+
+Promise是异步编程的一种解决方案：
+
+fetch('/api/data')
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
+
+5.3 async/await
+
+async/await让异步代码看起来像同步代码：
+
+async function getData() {
+  try {
+    const response = await fetch('/api/data');
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+第六章 DOM操作
+
+6.1 选择元素
+
+document.getElementById()
+document.querySelector()
+document.querySelectorAll()
+
+6.2 修改元素
+
+element.innerHTML
+element.textContent
+element.setAttribute()
+
+6.3 事件处理
+
+element.addEventListener('click', function() {
+  console.log('被点击了');
+});
+
+第七章 模块化
+
+7.1 ES6模块
+
+导出：
+
+export const name = '张三';
+export function sayHello() {
+  console.log('Hello');
+}
+
+导入：
+
+import { name, sayHello } from './module.js';
+
+7.2 CommonJS模块
+
+导出：
+
+module.exports = {
+  name: '张三',
+  sayHello: function() {
+    console.log('Hello');
+  }
+};
+
+导入：
+
+const module = require('./module');
