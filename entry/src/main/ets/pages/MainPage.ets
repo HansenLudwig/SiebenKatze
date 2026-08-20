@@ -2,9 +2,8 @@ import { BookshelfPage } from './BookshelfPage';
 import { LibraryPage } from './LibraryPage';
 import { ProfilePage } from './ProfilePage';
 
-@Entry
 @Component
-struct MainPage {
+export struct MainPage {
   @State currentIndex: number = 0;
 
   @Builder

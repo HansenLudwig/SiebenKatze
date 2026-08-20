@@ -1,9 +1,5 @@
 {
   "src": [
-    "pages/Index",
-    "pages/MainPage",
-    "pages/BookshelfPage",
-    "pages/LibraryPage",
-    "pages/ProfilePage"
+    "pages/Index"
   ]
 }

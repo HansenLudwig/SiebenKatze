@@ -1,33 +1,35 @@
-import { router } from '@kit.ArkUI';
+import { MainPage } from './MainPage';
 
 @Entry
 @Component
 struct Index {
+  @State showSplash: boolean = true;
+
   build() {
-    Column() {
-      Image($r('app.media.app_icon'))
-        .width(120)
-        .height(120)
-        .borderRadius(16)
+    Stack() {
+      if (this.showSplash) {
+        Column() {
+          Image($r('app.media.app_icon'))
+            .width('80%')
+            .height('80%')
+            .objectFit(ImageFit.Contain)
+            .borderRadius(16)
+        }
+        .width('100%')
+        .height('100%')
+        .backgroundColor('#fff7f8f3')
+        .justifyContent(FlexAlign.Center)
+      } else {
+        MainPage()
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#fff7f8f3')
-    .justifyContent(FlexAlign.Center)
-    .onClick(() => {
-      setTimeout(() => {
-        router.replaceUrl({
-          url: 'pages/MainPage'
-        });
-      }, 3000);
-    })
   }
 
   aboutToAppear(): void {
     setTimeout(() => {
-      router.replaceUrl({
-        url: 'pages/MainPage'
-      });
+      this.showSplash = false;
     }, 3000);
   }
 }
