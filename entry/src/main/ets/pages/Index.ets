@@ -12,7 +12,7 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#FF8C00')
+    .backgroundColor('#fff7f8f3')
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
       setTimeout(() => {
