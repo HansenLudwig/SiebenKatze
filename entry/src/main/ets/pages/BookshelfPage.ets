@@ -31,6 +31,7 @@ class BookModel {
 export struct BookshelfPage {
   @State bookList: Book[] = [];
   @State isLoading: boolean = true;
+  private lastVersion: number = -1;
 
   async aboutToAppear() {
     await this.loadBooks();
@@ -39,9 +40,15 @@ export struct BookshelfPage {
   async loadBooks() {
     const allBooks = await BookModel.getBookList();
     const manager = await BookshelfManager.getInstance();
-    const bookshelfIds = manager.getAllBookIds();
-    this.bookList = allBooks.filter(book => bookshelfIds.includes(book.id));
-    this.isLoading = false;
+    const currentVersion = manager.getVersion();
+    
+    if (currentVersion !== this.lastVersion) {
+      this.isLoading = true;
+      const bookshelfIds = manager.getAllBookIds();
+      this.bookList = allBooks.filter(book => bookshelfIds.includes(book.id));
+      this.lastVersion = currentVersion;
+      this.isLoading = false;
+    }
   }
 
   @Builder
@@ -139,5 +146,10 @@ export struct BookshelfPage {
     .width('100%')
     .height('100%')
     .backgroundColor('#F5F5F5')
+    .onVisibleAreaChange([0.0, 1.0], (isVisible: boolean) => {
+      if (isVisible) {
+        this.loadBooks();
+      }
+    })
   }
 }

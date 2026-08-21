@@ -1,5 +1,5 @@
 import { util } from '@kit.ArkTS';
-import { router } from '@kit.ArkUI';
+import { router, window } from '@kit.ArkUI';
 
 interface ReaderParams {
   fileName: string;
@@ -17,6 +17,12 @@ struct BookReaderPage {
   private scroller: Scroller = new Scroller();
 
   async aboutToAppear() {
+    const mainWindow = await window.getLastWindow(getContext());
+    mainWindow.setWindowSystemBarProperties({
+      statusBarColor: '#FF8C00',
+      statusBarContentColor: '#FFFFFF'
+    });
+
     const params = router.getParams() as ReaderParams;
     this.title = params.title || '阅读';
     

@@ -5,6 +5,7 @@ export class BookshelfManager {
   private data: Map<string, boolean> = new Map();
   private preferences: preferences.Preferences | null = null;
   private static readonly KEY = 'bookshelf';
+  private version: number = 0;
 
   static async getInstance(): Promise<BookshelfManager> {
     if (!BookshelfManager.INSTANCE) {
@@ -12,6 +13,10 @@ export class BookshelfManager {
       await BookshelfManager.INSTANCE.init();
     }
     return BookshelfManager.INSTANCE;
+  }
+
+  getVersion(): number {
+    return this.version;
   }
 
   private async init(): Promise<void> {
@@ -60,6 +65,7 @@ export class BookshelfManager {
       const books = Array.from(this.data.keys());
       await this.preferences.put(BookshelfManager.KEY, JSON.stringify(books));
       await this.preferences.flush();
+      this.version++;
     }
   }
 }

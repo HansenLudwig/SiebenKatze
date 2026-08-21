@@ -28,11 +28,29 @@ class BookModel {
 
 @Component
 export struct LibraryPage {
-  @State bookList: Book[] = [];
+  @State allBooks: Book[] = [];
+  @State searchText: string = '';
   @State isLoading: boolean = true;
 
+  private filteredBooks: Book[] = [];
+
+  getFilteredBooks(): Book[] {
+    if (!this.searchText.trim()) {
+      return this.allBooks;
+    }
+    const keyword = this.searchText.toLowerCase().trim();
+    return this.allBooks.filter(book => {
+      const titleMatch = book.title.toLowerCase().includes(keyword);
+      const authorMatch = book.author.toLowerCase().includes(keyword);
+      const hashtagMatch = book.hashtags.some(tag => 
+        tag.toLowerCase().includes(keyword) || `#${tag.toLowerCase()}`.includes(keyword)
+      );
+      return titleMatch || authorMatch || hashtagMatch;
+    });
+  }
+
   async aboutToAppear() {
-    this.bookList = await BookModel.getBookList();
+    this.allBooks = await BookModel.getBookList();
     this.isLoading = false;
   }
 
@@ -93,24 +111,39 @@ export struct LibraryPage {
 
   build() {
     Column() {
-      Text('书库')
-        .fontSize(24)
-        .fontWeight(FontWeight.Bold)
-        .padding({ left: 16, top: 16, bottom: 12 })
-        .width('100%')
+      Row() {
+        SymbolGlyph($r('sys.symbol.magnifyingglass'))
+          .fontSize(18)
+          .fontColor(['#999999'])
+          .margin({ left: 12 })
+
+        TextInput({ placeholder: '搜索书名、作者或标签' })
+          .layoutWeight(1)
+          .height(40)
+          .backgroundColor(Color.Transparent)
+          .placeholderColor('#999999')
+          .placeholderFont({ size: 14 })
+          .fontSize(14)
+          .fontColor('#333333')
+          .margin({ left: 8, right: 12 })
+          .onChange((value: string) => {
+            this.searchText = value;
+          })
+      }
+      .width('95%')
+      .height(48)
+      .backgroundColor('#FFFFFF')
+      .borderRadius(12)
+      .margin({ left: 20, right: 20, top: 16, bottom: 12 })
 
       if (this.isLoading) {
         LoadingProgress()
           .width(48)
           .height(48)
           .color('#FF8C00')
-      } else if (this.bookList.length === 0) {
-        Text('暂无书籍')
-          .fontSize(16)
-          .fontColor('#999999')
       } else {
         List() {
-          ForEach(this.bookList, (book: Book) => {
+          ForEach(this.getFilteredBooks(), (book: Book) => {
             ListItem() {
               this.bookItem(book)
             }

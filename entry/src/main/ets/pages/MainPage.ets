@@ -1,10 +1,19 @@
 import { BookshelfPage } from './BookshelfPage';
 import { LibraryPage } from './LibraryPage';
 import { ProfilePage } from './ProfilePage';
+import { window } from '@kit.ArkUI';
 
 @Component
 export struct MainPage {
   @State currentIndex: number = 0;
+
+  async aboutToAppear() {
+    const mainWindow = await window.getLastWindow(getContext());
+    mainWindow.setWindowSystemBarProperties({
+      statusBarColor: '#F5F5F5',
+      statusBarContentColor: '#000000'
+    });
+  }
 
   @Builder
   navItem(index: number, icon: string, title: string) {

@@ -1,5 +1,5 @@
 import { util } from '@kit.ArkTS';
-import { router } from '@kit.ArkUI';
+import { router, window } from '@kit.ArkUI';
 import { BookshelfManager } from '../model/BookshelfManager';
 
 interface Book {
@@ -40,6 +40,12 @@ struct BookDetailPage {
   @State bookId: string = '';
 
   async aboutToAppear() {
+    const mainWindow = await window.getLastWindow(getContext());
+    mainWindow.setWindowSystemBarProperties({
+      statusBarColor: '#F5F5F5',
+      statusBarContentColor: '#000000'
+    });
+
     const params = router.getParams() as RouterParams;
     this.bookId = params.bookId;
     
