@@ -1,0 +1,37 @@
+entry/src/main/ets/pages/BookDetailPage.ets
+  s_0b930614d3db7f::t_760c2d8d3943ea 42,55-59,62-70,76
+  s_0b930614d3db7f::t_78fff106981d4d 174-175,191-192
+entry/src/main/ets/pages/BookReaderPage.ets
+  s_0b930614d3db7f::t_51572c20193308 33-36,52-54
+  s_0b930614d3db7f::t_96fd7b53fe27b7 3,8,21-22
+  s_0b930614d3db7f::t_93b33bcee0bb7d 114,119
+  s_0b930614d3db7f::t_051ecaa5053267 17-20,43,47,55-64,74-113,115-116,122-150,152-174,176-204,208-217,219-248,251-261,263-286,289-291
+  s_0b930614d3db7f::t_1066d7bc1faef4 66-73
+  s_0b930614d3db7f::t_f4a3a1cc26bd89 175
+  s_0b930614d3db7f::t_caef1de906110e 27-28
+  s_0b930614d3db7f::t_f27de85ef156ae 151
+  s_0b930614d3db7f::t_82a16ced21ee32 205-207
+  s_0b930614d3db7f::t_34beb5563c3769 65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "81af229c7f3033d407c47df8bba0c00093cf9403",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0b930614d3db7f": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fe1e1fe2effeq50whM5TYyOpME",
+        "model": "glm-5"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 59
+    }
+  }
+}
