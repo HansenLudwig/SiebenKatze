@@ -39,6 +39,7 @@ struct BookDetailPage {
   @State isLoading: boolean = true;
   @State isInBookshelf: boolean = false;
   @State bookId: string = '';
+  @State lastBookshelfVersion: number = -1;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -51,14 +52,28 @@ struct BookDetailPage {
     this.bookId = params.bookId;
     
     this.book = await BookModel.getBookById(this.bookId);
+    await this.refreshBookshelfStatus();
+    this.isLoading = false;
+  }
+
+  async refreshBookshelfStatus() {
     const manager = await BookshelfManager.getInstance();
     this.isInBookshelf = manager.isInBookshelf(this.bookId);
-    this.isLoading = false;
+    this.lastBookshelfVersion = manager.getVersion();
+  }
+
+  async onPageShow() {
+    const manager = await BookshelfManager.getInstance();
+    const currentVersion = manager.getVersion();
+    if (currentVersion !== this.lastBookshelfVersion) {
+      await this.refreshBookshelfStatus();
+    }
   }
 
   async toggleBookshelf() {
     const manager = await BookshelfManager.getInstance();
     this.isInBookshelf = await manager.toggleBookshelf(this.bookId);
+    this.lastBookshelfVersion = await (await BookshelfManager.getInstance()).getVersion();
   }
 
   build() {
@@ -156,7 +171,8 @@ struct BookDetailPage {
                 url: 'pages/BookReaderPage',
                 params: {
                   fileName: this.book?.fileName,
-                  title: this.book?.title
+                  title: this.book?.title,
+                  bookId: this.book?.id
                 }
               });
             })
@@ -172,7 +188,8 @@ struct BookDetailPage {
                   url: 'pages/BookReaderPage',
                   params: {
                     fileName: this.book?.fileName,
-                    title: this.book?.title
+                    title: this.book?.title,
+                    bookId: this.book?.id
                   }
                 });
               }
