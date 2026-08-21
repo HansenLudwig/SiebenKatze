@@ -9,6 +9,7 @@ interface Book {
   hashtags: string[];
   description: string;
   fileName: string;
+  cover: string;
 }
 
 interface RouterParams {
@@ -73,13 +74,17 @@ struct BookDetailPage {
           router.back();
         })
 
-        Text(this.book?.title || '书籍详情')
-          .fontSize(20)
-          .fontWeight(FontWeight.Bold)
-          .layoutWeight(1)
-          .textAlign(TextAlign.Center)
+        Blank().layoutWeight(1)
 
-        Blank().width(40)
+        Button(this.isInBookshelf ? '已加入书架' : '加入书架')
+          .fontSize(14)
+          .fontColor(this.isInBookshelf ? '#FF8C00' : Color.White)
+          .backgroundColor(this.isInBookshelf ? '#FFF3E0' : '#FF8C00')
+          .borderRadius(16)
+          .height(32)
+          .onClick(() => {
+            this.toggleBookshelf();
+          })
       }
       .width('100%')
       .height(56)
@@ -93,10 +98,17 @@ struct BookDetailPage {
       } else if (this.book) {
         Column() {
           Column() {
-            Text(this.book.title)
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
+            Image($r('app.media.app_icon'))
+              .width(120)
+              .height(160)
+              .borderRadius(8)
+              .objectFit(ImageFit.Cover)
               .margin({ bottom: 16 })
+
+            Text(this.book.title)
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .margin({ bottom: 12 })
 
             Text(`作者: ${this.book.author}`)
               .fontSize(16)
@@ -128,31 +140,34 @@ struct BookDetailPage {
           }
           .width('100%')
           .padding(24)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor('#F5F5F5')
           .borderRadius(12)
           .margin(16)
 
-          Row() {
-            Button(this.isInBookshelf ? '已加入书架' : '加入书架')
-              .fontSize(16)
-              .fontColor(this.isInBookshelf ? '#FF8C00' : Color.White)
-              .backgroundColor(this.isInBookshelf ? '#FFF3E0' : '#FF8C00')
-              .borderRadius(24)
-              .layoutWeight(1)
-              .height(48)
-              .onClick(() => {
-                this.toggleBookshelf();
-              })
-
-            Button('开始阅读')
-              .fontSize(16)
-              .fontColor(Color.White)
-              .backgroundColor('#333333')
-              .borderRadius(24)
-              .layoutWeight(1)
-              .height(48)
-              .margin({ left: 16 })
-              .onClick(() => {
+          Button('开始阅读')
+            .fontSize(16)
+            .fontColor(Color.White)
+            .backgroundColor('#FF8C00')
+            .borderRadius(24)
+            .width('90%')
+            .height(48)
+            .onClick(() => {
+              router.pushUrl({
+                url: 'pages/BookReaderPage',
+                params: {
+                  fileName: this.book?.fileName,
+                  title: this.book?.title
+                }
+              });
+            })
+        }
+        .layoutWeight(1)
+        .gesture(
+          PanGesture()
+            .onActionEnd((event: GestureEvent) => {
+              if (event.offsetX > 100) {
+                router.back();
+              } else if (event.offsetX < -100) {
                 router.pushUrl({
                   url: 'pages/BookReaderPage',
                   params: {
@@ -160,12 +175,9 @@ struct BookDetailPage {
                     title: this.book?.title
                   }
                 });
-              })
-          }
-          .width('100%')
-          .padding({ left: 16, right: 16, bottom: 24 })
-        }
-        .layoutWeight(1)
+              }
+            })
+        )
       }
     }
     .width('100%')

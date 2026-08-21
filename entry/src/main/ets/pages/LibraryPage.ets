@@ -8,6 +8,7 @@ interface Book {
   hashtags: string[];
   description: string;
   fileName: string;
+  cover: string;
 }
 
 class BookModel {
@@ -109,6 +110,66 @@ export struct LibraryPage {
     })
   }
 
+  @Builder
+  bookItemGrid(book: Book) {
+    Row() {
+      Image($r('app.media.app_icon'))
+        .width(60)
+        .height(80)
+        .borderRadius(4)
+        .objectFit(ImageFit.Cover)
+
+      Column() {
+        Text(book.title)
+          .fontSize(13)
+          .fontWeight(FontWeight.Bold)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(book.author)
+          .fontSize(11)
+          .fontColor('#666666')
+          .margin({ top: 4 })
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Row() {
+          ForEach(book.hashtags.slice(0, 2), (tag: string) => {
+            Text(`#${tag}`)
+              .fontSize(10)
+              .fontColor('#FF8C00')
+              .backgroundColor('#FFF3E0')
+              .padding({ left: 4, right: 4, top: 1, bottom: 1 })
+              .borderRadius(2)
+              .margin({ right: 4 })
+          })
+        }
+        .margin({ top: 4 })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+      .margin({ left: 8 })
+      .justifyContent(FlexAlign.Start)
+    }
+    .width('100%')
+    .padding(8)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(8)
+    .shadow({ radius: 2, color: '#E0E0E0', offsetX: 0, offsetY: 1 })
+    .onClick(() => {
+      router.pushUrl({
+        url: 'pages/BookDetailPage',
+        params: {
+          bookId: book.id
+        }
+      });
+    })
+  }
+
+  isSearching(): boolean {
+    return this.searchText.trim().length > 0;
+  }
+
   build() {
     Column() {
       Row() {
@@ -141,7 +202,7 @@ export struct LibraryPage {
           .width(48)
           .height(48)
           .color('#FF8C00')
-      } else {
+      } else if (this.isSearching()) {
         List() {
           ForEach(this.getFilteredBooks(), (book: Book) => {
             ListItem() {
@@ -152,6 +213,21 @@ export struct LibraryPage {
         }
         .width('100%')
         .layoutWeight(1)
+        .scrollBar(BarState.Auto)
+      } else {
+        Grid() {
+          ForEach(this.allBooks, (book: Book) => {
+            GridItem() {
+              this.bookItemGrid(book)
+            }
+          })
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .columnsTemplate('1fr 1fr')
+        .rowsGap(4)
+        .columnsGap(4)
+        .padding({ left: 8, right: 8, bottom: 8 })
         .scrollBar(BarState.Auto)
       }
     }

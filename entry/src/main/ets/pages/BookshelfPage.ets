@@ -9,6 +9,7 @@ interface Book {
   hashtags: string[];
   description: string;
   fileName: string;
+  cover: string;
 }
 
 class BookModel {
