@@ -32,7 +32,11 @@ export struct LibraryPage {
   @State allBooks: Book[] = [];
   @State searchText: string = '';
   @State isLoading: boolean = true;
+  @State currentTab: number = 1;
+  @State currentSubTab: number = 0;
 
+  private tabs: string[] = ['发现', '小说', '图书', '听书', '漫剧', '必读榜'];
+  private subTabs: string[] = ['推荐榜', '大热榜', '完结榜', '好评榜'];
   private filteredBooks: Book[] = [];
 
   getFilteredBooks(): Book[] {
@@ -197,11 +201,87 @@ export struct LibraryPage {
       .borderRadius(12)
       .margin({ left: 20, right: 20, top: 16, bottom: 12 })
 
+      Scroll() {
+        Row() {
+          ForEach(this.tabs, (tab: string, index?: number) => {
+            Column() {
+              Text(tab)
+                .fontSize(index === this.currentTab ? 20 : 17)
+                .fontColor(index === this.currentTab ? '#FF8C00' : '#666666')
+                .fontWeight(index === this.currentTab ? FontWeight.Bold : FontWeight.Normal)
+
+              if (index === this.currentTab) {
+                Row()
+                  .width(20)
+                  .height(3)
+                  .backgroundColor('#FF8C00')
+                  .borderRadius(2)
+                  .margin({ top: 4 })
+              }
+            }
+            .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+            .onClick(() => {
+              if (index !== undefined) {
+                this.currentTab = index;
+              }
+            })
+          })
+        }
+        .justifyContent(FlexAlign.Start)
+      }
+      .scrollable(ScrollDirection.Horizontal)
+      .scrollBar(BarState.Off)
+      .width('100%')
+      .padding({ left: 12, right: 12 })
+      .margin({ bottom: 8 })
+      .align(Alignment.Start)
+
+      if (this.currentTab === 1) {
+        Row() {
+          ForEach(this.subTabs, (tab: string, index?: number) => {
+            Text(tab)
+              .fontSize(13)
+              .fontColor(index === this.currentSubTab ? '#FF8C00' : '#999999')
+              .fontWeight(index === this.currentSubTab ? FontWeight.Bold : FontWeight.Normal)
+              .padding({ left: 10, right: 10, top: 4, bottom: 4 })
+              .borderRadius(16)
+              .backgroundColor(index === this.currentSubTab ? '#FFF3E0' : Color.Transparent)
+              .onClick(() => {
+                if (index !== undefined) {
+                  this.currentSubTab = index;
+                }
+              })
+          })
+        }
+        .width('100%')
+        .padding({ left: 16, right: 16 })
+        .margin({ bottom: 8 })
+        .justifyContent(FlexAlign.Start)
+      }
+
       if (this.isLoading) {
         LoadingProgress()
           .width(48)
           .height(48)
           .color('#FF8C00')
+      } else if (this.currentTab !== 1) {
+        Column() {
+          Text('敬请期待')
+            .fontSize(16)
+            .fontColor('#999999')
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+      } else if (this.currentSubTab !== 0) {
+        Column() {
+          Text('敬请期待')
+            .fontSize(16)
+            .fontColor('#999999')
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
       } else if (this.isSearching()) {
         List() {
           ForEach(this.getFilteredBooks(), (book: Book) => {

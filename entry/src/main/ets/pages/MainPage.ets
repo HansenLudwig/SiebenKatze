@@ -5,7 +5,7 @@ import { window } from '@kit.ArkUI';
 
 @Component
 export struct MainPage {
-  @State currentIndex: number = 0;
+  @State currentIndex: number = 1;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());

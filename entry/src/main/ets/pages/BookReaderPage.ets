@@ -8,6 +8,11 @@ interface ReaderParams {
   bookId: string;
 }
 
+interface PageInfo {
+  startIndex: number;
+  endIndex: number;
+}
+
 @Entry
 @Component
 struct BookReaderPage {
@@ -17,9 +22,17 @@ struct BookReaderPage {
   @State showMenu: boolean = false;
   @State isPageMode: boolean = false;
   @State currentPage: number = 0;
-  @State pages: string[] = [];
+  @State pages: PageInfo[] = [];
   @State bookId: string = '';
   @State isInBookshelf: boolean = false;
+  @State displayHeight: number = 0;
+  @State textHeight: number = 0;
+
+  private paragraphs: string[] = [];
+  private readonly lineHeight: number = 28;
+  private readonly fontSize: number = 16;
+  private readonly textPadding: number = 40;
+  private estimatedLinesPerPage: number = 20;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -40,27 +53,54 @@ struct BookReaderPage {
       const fileData = await context.getRawFileContent(params.fileName);
       const decoder = new util.TextDecoder('utf-8');
       this.content = decoder.decodeToString(fileData);
-      this.pages = this.splitContentToPages(this.content);
+      this.paragraphs = this.splitToParagraphs(this.content);
     } catch (error) {
       console.error('Failed to load book content:', error);
       this.content = '无法加载书籍内容';
-      this.pages = [this.content];
+      this.paragraphs = [this.content];
     }
     this.isLoading = false;
+  }
+
+  splitToParagraphs(content: string): string[] {
+    return content.split(/\n+/).filter(p => p.trim().length > 0);
+  }
+
+  calculatePagesForHeight(height: number) {
+    const availableHeight = height - this.textPadding * 2;
+    const linesPerPage = Math.floor(availableHeight / this.lineHeight);
+    this.estimatedLinesPerPage = Math.max(linesPerPage, 10);
+    
+    this.pages = [];
+    let currentLines = 0;
+    let startIndex = 0;
+    
+    for (let i = 0; i < this.paragraphs.length; i++) {
+      const para = this.paragraphs[i];
+      const charPerLine = Math.floor(this.getDisplayWidth() / (this.fontSize * 0.6));
+      const paraLines = Math.ceil(para.length / charPerLine) + 0.5;
+      
+      if (currentLines + paraLines > this.estimatedLinesPerPage && currentLines > 0) {
+        this.pages.push({ startIndex, endIndex: i - 1 });
+        startIndex = i;
+        currentLines = 0;
+      }
+      
+      currentLines += paraLines;
+    }
+    
+    if (startIndex < this.paragraphs.length) {
+      this.pages.push({ startIndex, endIndex: this.paragraphs.length - 1 });
+    }
+  }
+
+  getDisplayWidth(): number {
+    return this.displayHeight > 0 ? 360 : 360;
   }
 
   async toggleBookshelf() {
     const manager = await BookshelfManager.getInstance();
     this.isInBookshelf = await manager.toggleBookshelf(this.bookId);
-  }
-
-  splitContentToPages(content: string): string[] {
-    const charsPerPage = 800;
-    const pages: string[] = [];
-    for (let i = 0; i < content.length; i += charsPerPage) {
-      pages.push(content.slice(i, i + charsPerPage));
-    }
-    return pages;
   }
 
   async aboutToDisappear() {
@@ -87,6 +127,14 @@ struct BookReaderPage {
     if (this.currentPage < this.pages.length - 1) {
       this.currentPage++;
     }
+  }
+
+  getCurrentPageContent(): string {
+    if (this.pages.length === 0 || this.currentPage >= this.pages.length) {
+      return this.content;
+    }
+    const page = this.pages[this.currentPage];
+    return this.paragraphs.slice(page.startIndex, page.endIndex + 1).join('\n\n');
   }
 
   @Builder
@@ -198,10 +246,10 @@ struct BookReaderPage {
     Scroll() {
       Column() {
         Text(this.content)
-          .fontSize(16)
+          .fontSize(this.fontSize)
           .fontColor('#333333')
-          .lineHeight(28)
-          .padding(20)
+          .lineHeight(this.lineHeight)
+          .padding(this.textPadding)
           .onClick(() => {
             this.toggleMenu();
           })
@@ -219,11 +267,17 @@ struct BookReaderPage {
   @Builder
   pageContent() {
     Stack() {
-      Text(this.pages[this.currentPage] || '')
-        .fontSize(16)
+      Text(this.getCurrentPageContent())
+        .fontSize(this.fontSize)
         .fontColor('#333333')
-        .lineHeight(28)
-        .padding(20)
+        .lineHeight(this.lineHeight)
+        .padding(this.textPadding)
+        .width('100%')
+        .onAreaChange((oldValue: Area, newValue: Area) => {
+          if (this.pages.length === 0 && newValue.height > 0) {
+            this.textHeight = newValue.height as number;
+          }
+        })
 
       Row() {
         Column()
@@ -252,6 +306,13 @@ struct BookReaderPage {
     }
     .width('100%')
     .layoutWeight(1)
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      const newHeight = newValue.height as number;
+      if (this.isPageMode && newHeight > 0 && newHeight !== this.displayHeight) {
+        this.displayHeight = newHeight;
+        this.calculatePagesForHeight(newHeight);
+      }
+    })
     .gesture(
       PanGesture()
         .onActionEnd((event: GestureEvent) => {
