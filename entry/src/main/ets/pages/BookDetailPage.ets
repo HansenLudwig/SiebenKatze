@@ -1,6 +1,6 @@
 import { util } from '@kit.ArkTS';
 import { router, window } from '@kit.ArkUI';
-import { BookshelfManager } from '../model/BookshelfManager';
+import { UserProfileManager } from '../model/UserProfileManager';
 
 interface Book {
   id: string;
@@ -57,13 +57,13 @@ struct BookDetailPage {
   }
 
   async refreshBookshelfStatus() {
-    const manager = await BookshelfManager.getInstance();
+    const manager = await UserProfileManager.getInstance();
     this.isInBookshelf = manager.isInBookshelf(this.bookId);
     this.lastBookshelfVersion = manager.getVersion();
   }
 
   async onPageShow() {
-    const manager = await BookshelfManager.getInstance();
+    const manager = await UserProfileManager.getInstance();
     const currentVersion = manager.getVersion();
     if (currentVersion !== this.lastBookshelfVersion) {
       await this.refreshBookshelfStatus();
@@ -71,9 +71,9 @@ struct BookDetailPage {
   }
 
   async toggleBookshelf() {
-    const manager = await BookshelfManager.getInstance();
+    const manager = await UserProfileManager.getInstance();
     this.isInBookshelf = await manager.toggleBookshelf(this.bookId);
-    this.lastBookshelfVersion = await (await BookshelfManager.getInstance()).getVersion();
+    this.lastBookshelfVersion = manager.getVersion();
   }
 
   build() {

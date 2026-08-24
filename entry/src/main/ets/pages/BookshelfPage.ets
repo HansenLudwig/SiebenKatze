@@ -1,6 +1,6 @@
 import { util } from '@kit.ArkTS';
 import { router } from '@kit.ArkUI';
-import { BookshelfManager } from '../model/BookshelfManager';
+import { UserProfileManager } from '../model/UserProfileManager';
 
 interface Book {
   id: string;
@@ -40,7 +40,7 @@ export struct BookshelfPage {
 
   async loadBooks() {
     const allBooks = await BookModel.getBookList();
-    const manager = await BookshelfManager.getInstance();
+    const manager = await UserProfileManager.getInstance();
     const currentVersion = manager.getVersion();
     
     if (currentVersion !== this.lastVersion) {
