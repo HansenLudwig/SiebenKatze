@@ -5,7 +5,7 @@
     "author": "张三",
     "hashtags": ["HarmonyOS", "ArkTS", "编程"],
     "description": "本书深入讲解ArkTS语言特性和HarmonyOS应用开发实践。",
-    "fileName": "deep_arkts.txt",
+    "fileName": "deep_arkts.epub",
     "cover": "app_icon.png"
   },
   {
@@ -14,7 +14,7 @@
     "author": "李四",
     "hashtags": ["HarmonyOS", "移动开发"],
     "description": "从零开始学习HarmonyOS应用开发，涵盖UI、网络、数据存储等核心内容。",
-    "fileName": "harmonyos_guide.txt",
+    "fileName": "harmonyos_guide.epub",
     "cover": "app_icon.png"
   },
   {
@@ -23,7 +23,7 @@
     "author": "王五",
     "hashtags": ["设计模式", "架构", "软件工程"],
     "description": "详解23种经典设计模式及其在实际项目中的应用。",
-    "fileName": "design_patterns.txt",
+    "fileName": "design_patterns.epub",
     "cover": "app_icon.png"
   },
   {
@@ -32,7 +32,7 @@
     "author": "赵六",
     "hashtags": ["JavaScript", "前端", "编程"],
     "description": "深入理解JavaScript核心概念，包括作用域、闭包、原型链等。",
-    "fileName": "js_advanced.txt",
+    "fileName": "js_advanced.epub",
     "cover": "app_icon.png"
   },
   {
@@ -41,7 +41,7 @@
     "author": "钱七",
     "hashtags": ["算法", "数据结构", "计算机科学"],
     "description": "系统学习常用数据结构与算法，提升编程能力。",
-    "fileName": "data_structure.txt",
+    "fileName": "data_structure.epub",
     "cover": "app_icon.png"
   }
 ]

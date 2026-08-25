@@ -2,15 +2,24 @@ import { preferences } from '@kit.ArkData';
 
 interface ReadingHistoryEntry {
   bookId: string;
-  currentPage: number;
-  scrollOffset: number;
+  currentPage?: number;
+  scrollOffset?: number;
+  spineIndex?: number;
+  startDomPos?: string;
   lastReadTime: number;
+}
+
+export interface ParagraphComment {
+  id: string;
+  content: string;
+  createTime: number;
 }
 
 interface UserProfileData {
   pageMode: boolean;
   bookshelf: string[];
   readingHistory: Record<string, ReadingHistoryEntry>;
+  paragraphComments: Record<string, ParagraphComment[]>;
 }
 
 export class UserProfileManager {
@@ -32,7 +41,8 @@ export class UserProfileManager {
     this.data = {
       pageMode: false,
       bookshelf: [],
-      readingHistory: {}
+      readingHistory: {},
+      paragraphComments: {}
     };
   }
 
@@ -45,6 +55,7 @@ export class UserProfileManager {
         this.data.pageMode = parsed.pageMode ?? false;
         this.data.bookshelf = parsed.bookshelf ?? [];
         this.data.readingHistory = parsed.readingHistory ?? {};
+        this.data.paragraphComments = parsed.paragraphComments ?? {};
       }
     } catch (error) {
       console.error('Failed to initialize UserProfileManager:', error);
@@ -108,10 +119,48 @@ export class UserProfileManager {
     await this.persist();
   }
 
+  async saveReadingProgressDomPos(bookId: string, spineIndex: number, startDomPos: string): Promise<void> {
+    this.data.readingHistory[bookId] = {
+      bookId,
+      spineIndex,
+      startDomPos,
+      lastReadTime: Date.now()
+    };
+    await this.persist();
+  }
+
   getReadingHistoryBookIds(): string[] {
     const entries = Object.values(this.data.readingHistory);
     entries.sort((a, b) => b.lastReadTime - a.lastReadTime);
     return entries.map(e => e.bookId);
+  }
+
+  private commentKey(bookId: string, paragraphIndex: number): string {
+    return `${bookId}_${paragraphIndex}`;
+  }
+
+  getParagraphComments(bookId: string, paragraphIndex: number): ParagraphComment[] {
+    const key = this.commentKey(bookId, paragraphIndex);
+    return this.data.paragraphComments[key] || [];
+  }
+
+  hasParagraphComments(bookId: string, paragraphIndex: number): boolean {
+    const key = this.commentKey(bookId, paragraphIndex);
+    const comments = this.data.paragraphComments[key];
+    return comments !== undefined && comments.length > 0;
+  }
+
+  async addParagraphComment(bookId: string, paragraphIndex: number, content: string): Promise<void> {
+    const key = this.commentKey(bookId, paragraphIndex);
+    if (!this.data.paragraphComments[key]) {
+      this.data.paragraphComments[key] = [];
+    }
+    this.data.paragraphComments[key].push({
+      id: `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+      content,
+      createTime: Date.now()
+    });
+    await this.persist();
   }
 
   private async persist(): Promise<void> {
