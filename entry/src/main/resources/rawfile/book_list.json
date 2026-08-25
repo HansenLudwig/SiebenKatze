@@ -43,5 +43,131 @@
     "description": "系统学习常用数据结构与算法，提升编程能力。",
     "fileName": "data_structure.epub",
     "cover": "app_icon.png"
+  },
+  {
+    "id": "006",
+    "title": "OVERLORD 16 半森林精灵的神人 下",
+    "author": "丸山くがね",
+    "hashtags": ["轻小说", "奇幻", "日本"],
+    "description": "OVERLORD系列第16卷，半森林精灵的神人篇下卷。",
+    "fileName": "OVERLORD 16  半森林精灵的神人 下 (丸山くがね) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "007",
+    "title": "中国2185",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣早期长篇科幻小说，描绘2185年的中国与未来社会。",
+    "fileName": "中国2185 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "008",
+    "title": "乡村教师",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣经典短篇科幻小说，讲述乡村教师在宇宙尺度下的伟大意义。",
+    "fileName": "乡村教师 (刘慈欣 [刘慈欣]) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "009",
+    "title": "乡村教师（另一版本）",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "乡村教师另一版本。",
+    "fileName": "乡村教师 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "010",
+    "title": "刘慈欣作品全集",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣作品全集收录，涵盖其大部分经典科幻作品。",
+    "fileName": "刘慈欣作品全集 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "011",
+    "title": "刘慈欣作品集",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣作品集，收录多篇经典中短篇科幻小说。",
+    "fileName": "刘慈欣作品集 (刘慈欣 [刘慈欣]) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "012",
+    "title": "地球大炮",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣科幻小说，讲述穿越地球的超级工程。",
+    "fileName": "地球大炮 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "013",
+    "title": "基辛格作品论中国+世界秩序",
+    "author": "Henry Kissinger, 胡利平",
+    "hashtags": ["政治", "历史", "国际关系"],
+    "description": "基辛格经典作品套装，论中国与世界秩序。",
+    "fileName": "基辛格作品论中国+世界秩序(套装共2册) (Henry Kissinger, 胡利平) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "014",
+    "title": "大外交",
+    "author": "Henry Kissinger",
+    "hashtags": ["政治", "历史", "外交"],
+    "description": "基辛格经典著作，全面审视20世纪国际外交史。",
+    "fileName": "大外交 (Henry Kissinger, （亨利·季辛吉亨利·基辛格）) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "015",
+    "title": "带上她的眼睛",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣经典短篇科幻，关于失重与孤独的温情故事。",
+    "fileName": "带上她的眼睛 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "016",
+    "title": "掌中花园",
+    "author": "张辰亮",
+    "hashtags": ["科普", "自然", "园艺"],
+    "description": "张辰亮科普作品，探索微缩自然世界的奥秘。",
+    "fileName": "掌中花园 (张辰亮) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "017",
+    "title": "时间移民",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣科幻短篇集，时间移民等多篇经典作品。",
+    "fileName": "时间移民 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "018",
+    "title": "赡养人类",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣科幻短篇，探讨贫富分化极端社会的未来。",
+    "fileName": "赡养人类 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "019",
+    "title": "魔鬼积木",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "中国", "刘慈欣"],
+    "description": "刘慈欣早期长篇科幻，基因工程与人类未来的黑暗寓言。",
+    "fileName": "魔鬼积木 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
   }
 ]

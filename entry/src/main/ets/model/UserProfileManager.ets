@@ -129,6 +129,15 @@ export class UserProfileManager {
     await this.persist();
   }
 
+  async saveReadingProgressScroll(bookId: string, scrollOffset: number): Promise<void> {
+    this.data.readingHistory[bookId] = {
+      bookId,
+      scrollOffset,
+      lastReadTime: Date.now()
+    };
+    await this.persist();
+  }
+
   getReadingHistoryBookIds(): string[] {
     const entries = Object.values(this.data.readingHistory);
     entries.sort((a, b) => b.lastReadTime - a.lastReadTime);
