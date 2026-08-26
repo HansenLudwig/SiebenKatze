@@ -1,11 +1,21 @@
 import { util } from '@kit.ArkTS';
 import { router, window } from '@kit.ArkUI';
+import { webview } from '@kit.ArkWeb';
 import { UserProfileManager } from '../model/UserProfileManager';
+import { EpubParser } from '../model/EpubParser';
 
 interface ReaderParams {
   fileName: string;
   title: string;
   bookId: string;
+}
+
+class ReaderBridge {
+  updateScroll: (offset: number) => void = (_offset: number): void => {};
+  onViewerReady: () => void = (): void => {};
+  onEpubRendered: () => void = (): void => {};
+  onPdfRendered: () => void = (): void => {};
+  requestToggleMenu: () => void = (): void => {};
 }
 
 @Entry
@@ -15,6 +25,7 @@ struct BookReaderPage {
   @State title: string = '';
   @State isLoading: boolean = true;
   @State showMenu: boolean = false;
+  @State showSettings: boolean = false;
   @State isPageMode: boolean = false;
   @State currentPage: number = 0;
   @State pages: string[] = [];
@@ -23,6 +34,8 @@ struct BookReaderPage {
   @State scrollOffset: number = 0;
   @State displayWidth: number = 0;
   @State displayHeight: number = 0;
+  @State fileFormat: string = 'txt';
+  @State webViewController: webview.WebviewController = new webview.WebviewController();
 
   private readonly lineHeight: number = 28;
   private readonly fontSize: number = 16;
@@ -32,6 +45,11 @@ struct BookReaderPage {
   private scrollScroller: Scroller = new Scroller();
   private needsRecalc: boolean = true;
   private isSwiping: boolean = false;
+  private webContentLoaded: boolean = false;
+  private base64Data: string = '';
+  private bridge: ReaderBridge = new ReaderBridge();
+  private isSliding: boolean = false;
+  @State pageOffsetX: number = 0;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -43,20 +61,19 @@ struct BookReaderPage {
     const params = router.getParams() as ReaderParams;
     this.title = params.title || '阅读';
     this.bookId = params.bookId || '';
-    
+
+    const ext: string = params.fileName.split('.').pop()?.toLowerCase() || 'txt';
+    if (ext === 'epub') {
+      this.fileFormat = 'epub';
+    } else if (ext === 'pdf') {
+      this.fileFormat = 'pdf';
+    } else {
+      this.fileFormat = 'txt';
+    }
+
     this.profileManager = await UserProfileManager.getInstance();
     this.isInBookshelf = this.profileManager.isInBookshelf(this.bookId);
     this.isPageMode = this.profileManager.getPageMode();
-    
-    try {
-      const context = getContext().resourceManager;
-      const fileData = await context.getRawFileContent(params.fileName);
-      const decoder = new util.TextDecoder('utf-8');
-      this.content = decoder.decodeToString(fileData);
-    } catch (error) {
-      console.error('Failed to load book content:', error);
-      this.content = '无法加载书籍内容';
-    }
 
     const progress = this.profileManager.getReadingProgress(this.bookId);
     if (progress) {
@@ -64,13 +81,77 @@ struct BookReaderPage {
       this.scrollOffset = progress.scrollOffset;
     }
 
-    this.isLoading = false;
+    if (this.fileFormat === 'txt') {
+      try {
+        const context = getContext().resourceManager;
+        const fileData = await context.getRawFileContent(params.fileName);
+        const decoder = new util.TextDecoder('utf-8');
+        this.content = decoder.decodeToString(fileData);
+      } catch (error) {
+        console.error('Failed to load book content:', error);
+        this.content = '无法加载书籍内容';
+      }
+      this.isLoading = false;
+    } else {
+      try {
+        this.base64Data = await EpubParser.toBase64(getContext(), params.fileName);
+      } catch (error) {
+        console.error('Failed to convert book to base64:', error);
+        this.base64Data = '';
+      }
+      this.isLoading = false;
+    }
+
+    this.bridge.updateScroll = (offset: number): void => {
+      this.scrollOffset = offset;
+    };
+    this.bridge.onViewerReady = (): void => {
+      this.sendContentToViewer();
+    };
+    this.bridge.onEpubRendered = (): void => {
+      this.webContentLoaded = true;
+      if (this.isPageMode) {
+        setTimeout(() => {
+          this.webViewController.runJavaScript(`setPageMode(true, ${this.scrollOffset})`);
+        }, 300);
+      } else if (this.scrollOffset > 0) {
+        setTimeout(() => {
+          this.webViewController.runJavaScript(`window.scrollTo(0, ${this.scrollOffset})`);
+        }, 300);
+      }
+    };
+    this.bridge.onPdfRendered = (): void => {
+      this.webContentLoaded = true;
+      if (this.isPageMode) {
+        setTimeout(() => {
+          this.webViewController.runJavaScript(`setPageMode(true, ${this.scrollOffset})`);
+        }, 300);
+      } else if (this.scrollOffset > 0) {
+        setTimeout(() => {
+          this.webViewController.runJavaScript(`window.scrollTo(0, ${this.scrollOffset})`);
+        }, 300);
+      }
+    };
+    this.bridge.requestToggleMenu = (): void => {
+      this.showMenu = !this.showMenu;
+    };
+  }
+
+  private sendContentToViewer() {
+    if (!this.base64Data) {
+      return;
+    }
+    if (this.fileFormat === 'epub') {
+      this.webViewController.runJavaScript(`loadEpubFromBase64("${this.base64Data}")`);
+    } else if (this.fileFormat === 'pdf') {
+      this.webViewController.runJavaScript(`loadPdfFromBase64("${this.base64Data}")`);
+    }
   }
 
   measureTextWidth(text: string): number {
-    let width = 0;
+    let width: number = 0;
     for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
+      const code: number = text.charCodeAt(i);
       if (code >= 0x4E00 && code <= 0x9FFF ||
           code >= 0x3000 && code <= 0x303F ||
           code >= 0xFF00 && code <= 0xFFEF ||
@@ -85,43 +166,30 @@ struct BookReaderPage {
     return width;
   }
 
-  countLinesForText(text: string, textWidth: number): number {
-    const lines = text.split('\n');
-    let totalLines = 0;
-    for (const line of lines) {
-      if (line.length === 0) {
-        totalLines += 1;
-        continue;
-      }
-      const lineWidth = this.measureTextWidth(line);
-      totalLines += Math.max(1, Math.ceil(lineWidth / textWidth));
-    }
-    return totalLines;
-  }
-
   calculatePages() {
     if (this.displayWidth <= 0 || this.displayHeight <= 0 || this.content.length === 0) {
       return;
     }
 
-    const textWidth = this.displayWidth - this.textPaddingH * 2;
-    const textHeight = this.displayHeight - this.textPaddingV * 2;
-    const linesPerPage = Math.max(Math.floor(textHeight / this.lineHeight), 5);
+    const textWidth: number = this.displayWidth - this.textPaddingH * 2;
+    const textHeight: number = this.displayHeight - this.textPaddingV * 2;
+    const linesPerPage: number = Math.max(Math.floor(textHeight / this.lineHeight), 5);
 
     const allLines: string[] = [];
-    const rawLines = this.content.split('\n');
-    for (const rawLine of rawLines) {
+    const rawLines: string[] = this.content.split('\n');
+    for (let r = 0; r < rawLines.length; r++) {
+      const rawLine: string = rawLines[r];
       if (rawLine.length === 0) {
         allLines.push('');
         continue;
       }
-      let remaining = rawLine;
+      let remaining: string = rawLine;
       while (remaining.length > 0) {
-        let charCount = 0;
-        let currentWidth = 0;
+        let charCount: number = 0;
+        let currentWidth: number = 0;
         for (let i = 0; i < remaining.length; i++) {
-          const code = remaining.charCodeAt(i);
-          const charWidth = (code >= 0x4E00 && code <= 0x9FFF ||
+          const code: number = remaining.charCodeAt(i);
+          const charWidth: number = (code >= 0x4E00 && code <= 0x9FFF ||
             code >= 0x3000 && code <= 0x303F ||
             code >= 0xFF00 && code <= 0xFFEF ||
             code >= 0xF900 && code <= 0xFAFF ||
@@ -142,9 +210,9 @@ struct BookReaderPage {
     }
 
     this.pages = [];
-    let lineIndex = 0;
+    let lineIndex: number = 0;
     while (lineIndex < allLines.length) {
-      const endLine = Math.min(lineIndex + linesPerPage, allLines.length);
+      const endLine: number = Math.min(lineIndex + linesPerPage, allLines.length);
       this.pages.push(allLines.slice(lineIndex, endLine).join('\n'));
       lineIndex = endLine;
     }
@@ -162,7 +230,11 @@ struct BookReaderPage {
 
   async aboutToDisappear() {
     if (this.profileManager && this.bookId) {
-      await this.profileManager.saveReadingProgress(this.bookId, this.currentPage, this.scrollOffset);
+      if (this.fileFormat === 'txt') {
+        await this.profileManager.saveReadingProgress(this.bookId, this.currentPage, this.scrollOffset);
+      } else {
+        await this.profileManager.saveReadingProgress(this.bookId, 0, this.scrollOffset);
+      }
     }
     const mainWindow = await window.getLastWindow(getContext());
     mainWindow.setWindowSystemBarProperties({
@@ -173,6 +245,35 @@ struct BookReaderPage {
 
   toggleMenu() {
     this.showMenu = !this.showMenu;
+  }
+
+  applyPageMode(pageMode: boolean) {
+    if (this.fileFormat === 'txt') {
+      if (pageMode) {
+        const offset = this.scrollScroller.currentOffset();
+        const scrollY: number = offset.yOffset;
+        if (this.displayHeight > 0 && scrollY > 0) {
+          this.currentPage = Math.floor(scrollY / this.displayHeight);
+        } else {
+          this.currentPage = 0;
+        }
+        this.needsRecalc = true;
+      } else {
+        if (this.pages.length > 0 && this.currentPage > 0 && this.displayHeight > 0) {
+          const linesPerPage: number = Math.max(Math.floor((this.displayHeight - this.textPaddingV * 2) / this.lineHeight), 5);
+          this.scrollOffset = this.currentPage * linesPerPage * this.lineHeight;
+        }
+      }
+    }
+    this.isPageMode = pageMode;
+    if (this.profileManager) {
+      this.profileManager.setPageMode(this.isPageMode);
+    }
+    if (this.fileFormat !== 'txt') {
+      this.webViewController.runJavaScript(`setPageMode(${this.isPageMode})`);
+    }
+    this.showSettings = false;
+    this.showMenu = false;
   }
 
   prevPage() {
@@ -187,6 +288,39 @@ struct BookReaderPage {
     if (this.currentPage < this.pages.length - 1) {
       this.currentPage++;
     }
+  }
+
+  slideToPrevPage() {
+    if (this.isSliding) return;
+    if (this.currentPage <= 0) {
+      router.back();
+      return;
+    }
+    this.isSliding = true;
+    this.currentPage--;
+    this.pageOffsetX = -this.displayWidth;
+    setTimeout(() => {
+      animateTo({ duration: 280, curve: Curve.EaseInOut, onFinish: () => {
+        this.isSliding = false;
+      }}, () => {
+        this.pageOffsetX = 0;
+      });
+    }, 16);
+  }
+
+  slideToNextPage() {
+    if (this.isSliding) return;
+    if (this.currentPage >= this.pages.length - 1) return;
+    this.isSliding = true;
+    this.currentPage++;
+    this.pageOffsetX = this.displayWidth;
+    setTimeout(() => {
+      animateTo({ duration: 280, curve: Curve.EaseInOut, onFinish: () => {
+        this.isSliding = false;
+      }}, () => {
+        this.pageOffsetX = 0;
+      });
+    }, 16);
   }
 
   @Builder
@@ -234,69 +368,103 @@ struct BookReaderPage {
 
   @Builder
   bottomMenu() {
-    Row() {
-      Column() {
-        SymbolGlyph($r('sys.symbol.list_bullet'))
-          .fontSize(24)
-          .fontColor([Color.Black])
-        Text('目录')
-          .fontSize(12)
-          .fontColor('#333333')
-          .margin({ top: 4 })
-      }
-      .layoutWeight(1)
-      .padding(8)
+    Column() {
+      if (this.showSettings) {
+        Column() {
+          Text('翻页方式')
+            .fontSize(15)
+            .fontColor('#333333')
+            .fontWeight(FontWeight.Medium)
+            .margin({ bottom: 12 })
 
-      Column() {
-        SymbolGlyph($r('sys.symbol.message'))
-          .fontSize(24)
-          .fontColor([Color.Black])
-        Text('讨论')
-          .fontSize(12)
-          .fontColor('#333333')
-          .margin({ top: 4 })
-      }
-      .layoutWeight(1)
-      .padding(8)
+          Row() {
+            Button('滚动')
+              .fontSize(14)
+              .fontColor(this.isPageMode ? '#666666' : '#FFFFFF')
+              .backgroundColor(this.isPageMode ? '#F0F0F0' : '#FF8C00')
+              .borderRadius(20)
+              .height(36)
+              .layoutWeight(1)
+              .onClick(() => {
+                this.applyPageMode(false);
+              })
 
-      Column() {
-        SymbolGlyph($r('sys.symbol.moon'))
-          .fontSize(24)
-          .fontColor([Color.Black])
-        Text('夜间模式')
-          .fontSize(12)
-          .fontColor('#333333')
-          .margin({ top: 4 })
-      }
-      .layoutWeight(1)
-      .padding(8)
-
-      Column() {
-        SymbolGlyph($r(this.isPageMode ? 'sys.symbol.doc_plaintext' : 'sys.symbol.book'))
-          .fontSize(24)
-          .fontColor([Color.Black])
-        Text(this.isPageMode ? '滚动模式' : '翻页模式')
-          .fontSize(12)
-          .fontColor('#333333')
-          .margin({ top: 4 })
-      }
-      .layoutWeight(1)
-      .padding(8)
-      .onClick(() => {
-        this.isPageMode = !this.isPageMode;
-        if (this.profileManager) {
-          this.profileManager.setPageMode(this.isPageMode);
+            Button('侧滑')
+              .fontSize(14)
+              .fontColor(this.isPageMode ? '#FFFFFF' : '#666666')
+              .backgroundColor(this.isPageMode ? '#FF8C00' : '#F0F0F0')
+              .borderRadius(20)
+              .height(36)
+              .layoutWeight(1)
+              .margin({ left: 12 })
+              .onClick(() => {
+                this.applyPageMode(true);
+              })
+          }
+          .width('100%')
         }
-        this.currentPage = 0;
-        this.showMenu = false;
-        if (this.isPageMode) {
-          this.needsRecalc = true;
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 16, bottom: 16 })
+        .backgroundColor('#FFFFFF')
+        .border({ width: { bottom: 1 }, color: '#E5E5E5' })
+      }
+
+      Row() {
+        Column() {
+          SymbolGlyph($r('sys.symbol.list_bullet'))
+            .fontSize(24)
+            .fontColor([Color.Black])
+          Text('目录')
+            .fontSize(12)
+            .fontColor('#333333')
+            .margin({ top: 4 })
         }
-      })
+        .layoutWeight(1)
+        .padding(8)
+
+        Column() {
+          SymbolGlyph($r('sys.symbol.message'))
+            .fontSize(24)
+            .fontColor([Color.Black])
+          Text('讨论')
+            .fontSize(12)
+            .fontColor('#333333')
+            .margin({ top: 4 })
+        }
+        .layoutWeight(1)
+        .padding(8)
+
+        Column() {
+          SymbolGlyph($r('sys.symbol.moon'))
+            .fontSize(24)
+            .fontColor([Color.Black])
+          Text('夜间模式')
+            .fontSize(12)
+            .fontColor('#333333')
+            .margin({ top: 4 })
+        }
+        .layoutWeight(1)
+        .padding(8)
+
+        Column() {
+          SymbolGlyph($r('sys.symbol.gearshape'))
+            .fontSize(24)
+            .fontColor([Color.Black])
+          Text('设置')
+            .fontSize(12)
+            .fontColor('#333333')
+            .margin({ top: 4 })
+        }
+        .layoutWeight(1)
+        .padding(8)
+        .onClick(() => {
+          this.showSettings = !this.showSettings;
+        })
+      }
+      .width('100%')
+      .backgroundColor('#FFFFFF')
+      .border({ width: { top: 1 }, color: '#E5E5E5' })
     }
-    .width('100%')
-    .backgroundColor('#FFFFFF')
-    .border({ width: { top: 1 }, color: '#E5E5E5' })
   }
 
   @Builder
@@ -348,6 +516,7 @@ struct BookReaderPage {
       .height('100%')
       .alignItems(HorizontalAlign.Start)
       .justifyContent(FlexAlign.Start)
+      .translate({ x: this.pageOffsetX })
 
       Row() {
         Column()
@@ -355,7 +524,7 @@ struct BookReaderPage {
           .height('100%')
           .onClick(() => {
             if (!this.isSwiping) {
-              this.prevPage();
+              this.slideToPrevPage();
             }
             this.isSwiping = false;
           })
@@ -366,7 +535,7 @@ struct BookReaderPage {
               })
               .onActionEnd((event: GestureEvent) => {
                 if (event.offsetX > 30) {
-                  this.prevPage();
+                  this.slideToPrevPage();
                 }
               })
           )
@@ -387,9 +556,9 @@ struct BookReaderPage {
               })
               .onActionEnd((event: GestureEvent) => {
                 if (event.offsetX < -30) {
-                  this.nextPage();
+                  this.slideToNextPage();
                 } else if (event.offsetX > 30) {
-                  this.prevPage();
+                  this.slideToPrevPage();
                 }
               })
           )
@@ -399,7 +568,7 @@ struct BookReaderPage {
           .height('100%')
           .onClick(() => {
             if (!this.isSwiping) {
-              this.nextPage();
+              this.slideToNextPage();
             }
             this.isSwiping = false;
           })
@@ -410,7 +579,7 @@ struct BookReaderPage {
               })
               .onActionEnd((event: GestureEvent) => {
                 if (event.offsetX < -30) {
-                  this.nextPage();
+                  this.slideToNextPage();
                 }
               })
           )
@@ -432,15 +601,36 @@ struct BookReaderPage {
     }
     .width('100%')
     .layoutWeight(1)
+    .clip(true)
     .onAreaChange((oldValue: Area, newValue: Area) => {
-      const newWidth = newValue.width as number;
-      const newHeight = newValue.height as number;
+      const newWidth: number = newValue.width as number;
+      const newHeight: number = newValue.height as number;
       if (this.isPageMode && (newWidth !== this.displayWidth || newHeight !== this.displayHeight || this.needsRecalc)) {
         this.displayWidth = newWidth;
         this.displayHeight = newHeight;
         this.calculatePages();
       }
     })
+  }
+
+  @Builder
+  webReader() {
+    Web({
+      src: this.fileFormat === 'epub' ? $rawfile('epub_viewer.html') : $rawfile('pdf_viewer.html'),
+      controller: this.webViewController
+    })
+      .width('100%')
+      .layoutWeight(1)
+      .backgroundColor('#FFF9F0')
+      .domStorageAccess(true)
+      .javaScriptAccess(true)
+      .fileAccess(true)
+      .javaScriptProxy({
+        object: this.bridge as object,
+        name: 'readerBridge',
+        methodList: ['updateScroll', 'onViewerReady', 'onEpubRendered', 'onPdfRendered', 'requestToggleMenu'],
+        controller: this.webViewController
+      })
   }
 
   build() {
@@ -451,10 +641,14 @@ struct BookReaderPage {
             .width(48)
             .height(48)
             .color('#FF8C00')
-        } else if (this.isPageMode) {
-          this.pageContent()
+        } else if (this.fileFormat === 'txt') {
+          if (this.isPageMode) {
+            this.pageContent()
+          } else {
+            this.scrollContent()
+          }
         } else {
-          this.scrollContent()
+          this.webReader()
         }
       }
       .width('100%')

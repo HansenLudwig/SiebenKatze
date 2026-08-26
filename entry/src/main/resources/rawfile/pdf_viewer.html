@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
+<title>PDF Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #FFF9F0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+#pages { padding: 4px; }
+.page { margin-bottom: 4px; text-align: center; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.page canvas { display: block; margin: 0 auto; width: 100% !important; height: auto !important; }
+#loading { text-align: center; padding: 60px 20px; color: #666; font-size: 16px; }
+#loading .spinner { width: 36px; height: 36px; margin: 0 auto 16px; border: 3px solid #eee; border-top-color: #FF8C00; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#error { text-align: center; padding: 60px 20px; color: #c00; font-size: 16px; display: none; }
+#error p { margin: 8px 0; }
+#error .hint { color: #999; font-size: 13px; }
+</style>
+</head>
+<body>
+<div id="loading">
+  <div class="spinner"></div>
+  <p>正在加载PDF阅读器...</p>
+</div>
+<div id="error">
+  <p>PDF加载失败</p>
+  <p class="hint">请检查网络连接后重试</p>
+</div>
+<div id="pages"></div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+var totalPages = 0;
+var currentScrollY = 0;
+
+function hideLoading() {
+  document.getElementById('loading').style.display = 'none';
+}
+
+function showError() {
+  hideLoading();
+  document.getElementById('error').style.display = 'block';
+}
+
+async function renderPdfFromBase64(base64Data) {
+  try {
+    var raw = atob(base64Data);
+    var arr = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) {
+      arr[i] = raw.charCodeAt(i);
+    }
+    var pdf = await pdfjsLib.getDocument({ data: arr }).promise;
+    await renderPdfPages(pdf);
+  } catch (e) {
+    console.error('PDF render error:', e);
+    showError();
+  }
+}
+
+async function renderPdfFromFile(filePath) {
+  try {
+    var pdf = await pdfjsLib.getDocument(filePath).promise;
+    await renderPdfPages(pdf);
+  } catch (e) {
+    console.error('PDF render error:', e);
+    showError();
+  }
+}
+
+async function renderPdfPages(pdf) {
+  totalPages = pdf.numPages;
+  var container = document.getElementById('pages');
+  hideLoading();
+
+  for (var i = 1; i <= pdf.numPages; i++) {
+    var page = await pdf.getPage(i);
+    var dpr = window.devicePixelRatio || 1;
+    var scale = dpr * 1.5;
+    var viewport = page.getViewport({ scale: scale });
+
+    var div = document.createElement('div');
+    div.className = 'page';
+
+    var canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    var ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+    div.appendChild(canvas);
+    container.appendChild(div);
+  }
+
+  if (window.readerBridge) {
+    window.readerBridge.onPdfRendered(totalPages);
+  }
+}
+
+window.addEventListener('scroll', function() {
+  currentScrollY = window.scrollY;
+  if (window.readerBridge) {
+    window.readerBridge.updateScroll(currentScrollY);
+  }
+});
+
+var __pageMode = false;
+var __touchStartX = 0;
+var __touchStartY = 0;
+var __touchMoved = false;
+var __currentPage = 0;
+var __scrollPos = 0;
+
+document.addEventListener('touchstart', function(e) {
+  __touchStartX = e.touches[0].clientX;
+  __touchStartY = e.touches[0].clientY;
+  __touchMoved = false;
+}, { passive: true });
+
+document.addEventListener('touchmove', function() {
+  __touchMoved = true;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (!__touchMoved) {
+    if (window.readerBridge) {
+      window.readerBridge.requestToggleMenu();
+    }
+    return;
+  }
+  if (__pageMode) {
+    var dx = e.changedTouches[0].clientX - __touchStartX;
+    var pages = document.querySelectorAll('.page');
+    if (pages.length > 0) {
+      if (dx < -50) {
+        __currentPage = Math.min(__currentPage + 1, pages.length - 1);
+        slideToCurrentPage();
+      } else if (dx > 50) {
+        __currentPage = Math.max(__currentPage - 1, 0);
+        slideToCurrentPage();
+      }
+    }
+  }
+});
+
+function slideToCurrentPage() {
+  var pagesContainer = document.getElementById('pages');
+  if (!pagesContainer) return;
+  var pageWidth = window.innerWidth;
+  var offsetX = -__currentPage * pageWidth;
+  pagesContainer.style.transition = 'transform 0.3s ease-in-out';
+  pagesContainer.style.transform = 'translateX(' + offsetX + 'px)';
+}
+
+window.setPageMode = function(enabled, initialScrollY) {
+  __pageMode = enabled;
+  var pagesContainer = document.getElementById('pages');
+  if (!pagesContainer) return;
+  var pageWidth = window.innerWidth;
+  var pageHeight = window.innerHeight;
+  if (enabled) {
+    __scrollPos = (initialScrollY !== undefined && initialScrollY > 0) ? initialScrollY : window.scrollY;
+
+    pagesContainer.style.display = 'flex';
+    pagesContainer.style.flexWrap = 'nowrap';
+    pagesContainer.style.padding = '0';
+    pagesContainer.style.overflow = 'visible';
+    pagesContainer.style.transform = 'translateX(0)';
+    pagesContainer.style.transition = 'none';
+
+    var pages = document.querySelectorAll('.page');
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].style.width = pageWidth + 'px';
+      pages[i].style.height = pageHeight + 'px';
+      pages[i].style.minWidth = pageWidth + 'px';
+      pages[i].style.minHeight = pageHeight + 'px';
+      pages[i].style.flexShrink = '0';
+      pages[i].style.marginBottom = '0';
+      pages[i].style.display = 'flex';
+      pages[i].style.alignItems = 'center';
+      pages[i].style.justifyContent = 'center';
+      pages[i].style.overflow = 'hidden';
+    }
+
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.width = pageWidth + 'px';
+    document.body.style.height = pageHeight + 'px';
+
+    __currentPage = 0;
+    for (var i = 0; i < pages.length; i++) {
+      if (pages[i].getBoundingClientRect().top > 2) { __currentPage = i; break; }
+      __currentPage = i;
+    }
+    pagesContainer.style.transform = 'translateX(' + (-__currentPage * pageWidth) + 'px)';
+  } else {
+    pagesContainer.style.display = '';
+    pagesContainer.style.flexWrap = '';
+    pagesContainer.style.padding = '';
+    pagesContainer.style.overflow = '';
+    pagesContainer.style.transform = '';
+    pagesContainer.style.transition = '';
+
+    var pages = document.querySelectorAll('.page');
+    for (var i = 0; i < pages.length; i++) {
+      pages[i].style.width = '';
+      pages[i].style.height = '';
+      pages[i].style.minWidth = '';
+      pages[i].style.minHeight = '';
+      pages[i].style.flexShrink = '';
+      pages[i].style.marginBottom = '';
+      pages[i].style.display = '';
+      pages[i].style.alignItems = '';
+      pages[i].style.justifyContent = '';
+      pages[i].style.overflow = '';
+    }
+
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+    document.body.style.width = '';
+    document.body.style.height = '';
+
+    window.scrollTo(0, __currentPage * pageHeight);
+  }
+};
+
+window.loadPdfFromBase64 = renderPdfFromBase64;
+window.loadPdfFromFile = renderPdfFromFile;
+
+if (window.readerBridge) {
+  window.readerBridge.onViewerReady();
+}
+</script>
+</body>
+</html>

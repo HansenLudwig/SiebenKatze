@@ -1,47 +1,128 @@
 [
   {
     "id": "001",
-    "title": "深入理解ArkTS",
-    "author": "张三",
-    "hashtags": ["HarmonyOS", "ArkTS", "编程"],
-    "description": "本书深入讲解ArkTS语言特性和HarmonyOS应用开发实践。",
-    "fileName": "deep_arkts.txt",
+    "title": "魔鬼积木",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "小说"],
+    "description": "刘慈欣科幻作品，探索基因工程与人类伦理的边界。",
+    "fileName": "魔鬼积木 (刘慈欣) (Z-Library).epub",
     "cover": "app_icon.png"
   },
   {
     "id": "002",
-    "title": "HarmonyOS开发指南",
-    "author": "李四",
-    "hashtags": ["HarmonyOS", "移动开发"],
-    "description": "从零开始学习HarmonyOS应用开发，涵盖UI、网络、数据存储等核心内容。",
-    "fileName": "harmonyos_guide.txt",
+    "title": "赡养人类",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "小说"],
+    "description": "刘慈欣科幻短篇，描绘极端贫富分化下的终极社会形态。",
+    "fileName": "赡养人类 (刘慈欣) (Z-Library).epub",
     "cover": "app_icon.png"
   },
   {
     "id": "003",
-    "title": "设计模式精解",
-    "author": "王五",
-    "hashtags": ["设计模式", "架构", "软件工程"],
-    "description": "详解23种经典设计模式及其在实际项目中的应用。",
-    "fileName": "design_patterns.txt",
+    "title": "时间移民",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "时间旅行"],
+    "description": "刘慈欣科幻作品，讲述人类穿越时间移民未来的宏大故事。",
+    "fileName": "时间移民 (刘慈欣) (Z-Library).epub",
     "cover": "app_icon.png"
   },
   {
     "id": "004",
-    "title": "JavaScript高级程序设计",
-    "author": "赵六",
-    "hashtags": ["JavaScript", "前端", "编程"],
-    "description": "深入理解JavaScript核心概念，包括作用域、闭包、原型链等。",
-    "fileName": "js_advanced.txt",
+    "title": "掌中花园",
+    "author": "张辰亮",
+    "hashtags": ["科普", "自然", "园艺"],
+    "description": "张辰亮（无穷小亮）带你走进微观自然世界，发现掌中花园的奇妙生态。",
+    "fileName": "掌中花园 (张辰亮) (Z-Library).epub",
     "cover": "app_icon.png"
   },
   {
     "id": "005",
-    "title": "数据结构与算法",
-    "author": "钱七",
-    "hashtags": ["算法", "数据结构", "计算机科学"],
-    "description": "系统学习常用数据结构与算法，提升编程能力。",
-    "fileName": "data_structure.txt",
+    "title": "带上她的眼睛",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "短篇小说"],
+    "description": "刘慈欣经典短篇，以一双眼睛串联地球与深空的温情故事。",
+    "fileName": "带上她的眼睛 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "006",
+    "title": "大外交",
+    "author": "Henry Kissinger",
+    "hashtags": ["外交", "国际关系", "历史"],
+    "description": "基辛格纵论近现代国际外交史，剖析均势政治与大国博弈。",
+    "fileName": "大外交 (Henry Kissinger, （亨利·季辛吉亨利·基辛格）) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "007",
+    "title": "基辛格作品论中国+世界秩序(套装共2册)",
+    "author": "Henry Kissinger, 胡利平",
+    "hashtags": ["外交", "国际关系", "中国"],
+    "description": "基辛格两大力作合集，深度解读中国与世界秩序的演变与未来。",
+    "fileName": "基辛格作品论中国+世界秩序(套装共2册) (Henry Kissinger, 胡利平) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "008",
+    "title": "地球大炮",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "硬科幻"],
+    "description": "刘慈欣硬科幻短篇，想象一条贯穿地球的超级隧道带来的震撼。",
+    "fileName": "地球大炮 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "009",
+    "title": "刘慈欣作品集",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "合集"],
+    "description": "刘慈欣科幻作品精选集，收录多篇经典中短篇科幻小说。",
+    "fileName": "刘慈欣作品集 (刘慈欣 [刘慈欣]) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "010",
+    "title": "刘慈欣作品全集",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "全集"],
+    "description": "刘慈欣科幻作品全集，完整收录其创作生涯的代表作品。",
+    "fileName": "刘慈欣作品全集 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "011",
+    "title": "乡村教师",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "乡村"],
+    "description": "刘慈欣经典短篇，乡村教师在生命尽头与星际文明的交汇。",
+    "fileName": "乡村教师 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "012",
+    "title": "乡村教师（另一版）",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "乡村"],
+    "description": "刘慈欣《乡村教师》另一版本，不同译本收录。",
+    "fileName": "乡村教师 (刘慈欣 [刘慈欣]) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "013",
+    "title": "中国2185",
+    "author": "刘慈欣",
+    "hashtags": ["科幻", "刘慈欣", "未来"],
+    "description": "刘慈欣早期长篇，构想2185年中国的未来图景与社会变革。",
+    "fileName": "中国2185 (刘慈欣) (Z-Library).epub",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "014",
+    "title": "OVERLORD 16 半森林精灵的神人 下",
+    "author": "丸山くがね",
+    "hashtags": ["轻小说", "奇幻", "OVERLORD"],
+    "description": "OVERLORD轻小说第16卷下半部分，安兹的冒险继续展开。",
+    "fileName": "OVERLORD 16  半森林精灵的神人 下 (丸山くがね) (Z-Library).epub",
     "cover": "app_icon.png"
   }
 ]
