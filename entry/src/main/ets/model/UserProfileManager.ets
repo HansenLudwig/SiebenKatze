@@ -5,6 +5,7 @@ interface ReadingHistoryEntry {
   currentPage: number;
   scrollOffset: number;
   lastReadTime: number;
+  progressPercent: number;
 }
 
 interface UserProfileData {
@@ -98,14 +99,20 @@ export class UserProfileManager {
     return this.data.readingHistory[bookId] || null;
   }
 
-  async saveReadingProgress(bookId: string, currentPage: number, scrollOffset: number): Promise<void> {
+  async saveReadingProgress(bookId: string, currentPage: number, scrollOffset: number, progressPercent: number): Promise<void> {
     this.data.readingHistory[bookId] = {
       bookId,
       currentPage,
       scrollOffset,
-      lastReadTime: Date.now()
+      lastReadTime: Date.now(),
+      progressPercent
     };
     await this.persist();
+  }
+
+  getProgressPercent(bookId: string): number {
+    const entry = this.data.readingHistory[bookId];
+    return entry ? entry.progressPercent : 0;
   }
 
   getReadingHistoryBookIds(): string[] {

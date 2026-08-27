@@ -16,6 +16,7 @@ class ReaderBridge {
   onEpubRendered: () => void = (): void => {};
   onPdfRendered: () => void = (): void => {};
   requestToggleMenu: () => void = (): void => {};
+  updateTotalPages: (total: number) => void = (_total: number): void => {};
 }
 
 @Entry
@@ -49,7 +50,9 @@ struct BookReaderPage {
   private base64Data: string = '';
   private bridge: ReaderBridge = new ReaderBridge();
   private isSliding: boolean = false;
+  private _totalPages: number = 0;
   @State pageOffsetX: number = 0;
+  @State showProgressToast: boolean = false;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -76,9 +79,10 @@ struct BookReaderPage {
     this.isPageMode = this.profileManager.getPageMode();
 
     const progress = this.profileManager.getReadingProgress(this.bookId);
-    if (progress) {
+    if (progress && (progress.scrollOffset > 0 || progress.currentPage > 0)) {
       this.currentPage = progress.currentPage;
       this.scrollOffset = progress.scrollOffset;
+      this.showProgressToast = true;
     }
 
     if (this.fileFormat === 'txt') {
@@ -113,11 +117,15 @@ struct BookReaderPage {
       if (this.isPageMode) {
         setTimeout(() => {
           this.webViewController.runJavaScript(`setPageMode(true, ${this.scrollOffset})`);
+          this.showProgressToast = false;
         }, 300);
       } else if (this.scrollOffset > 0) {
         setTimeout(() => {
           this.webViewController.runJavaScript(`window.scrollTo(0, ${this.scrollOffset})`);
+          this.showProgressToast = false;
         }, 300);
+      } else {
+        this.showProgressToast = false;
       }
     };
     this.bridge.onPdfRendered = (): void => {
@@ -125,15 +133,22 @@ struct BookReaderPage {
       if (this.isPageMode) {
         setTimeout(() => {
           this.webViewController.runJavaScript(`setPageMode(true, ${this.scrollOffset})`);
+          this.showProgressToast = false;
         }, 300);
       } else if (this.scrollOffset > 0) {
         setTimeout(() => {
           this.webViewController.runJavaScript(`window.scrollTo(0, ${this.scrollOffset})`);
+          this.showProgressToast = false;
         }, 300);
+      } else {
+        this.showProgressToast = false;
       }
     };
     this.bridge.requestToggleMenu = (): void => {
       this.showMenu = !this.showMenu;
+    };
+    this.bridge.updateTotalPages = (total: number): void => {
+      this._totalPages = total;
     };
   }
 
@@ -220,6 +235,7 @@ struct BookReaderPage {
     if (this.currentPage >= this.pages.length) {
       this.currentPage = Math.max(0, this.pages.length - 1);
     }
+    this._totalPages = this.pages.length;
     this.needsRecalc = false;
   }
 
@@ -228,14 +244,35 @@ struct BookReaderPage {
     this.isInBookshelf = await manager.toggleBookshelf(this.bookId);
   }
 
-  async aboutToDisappear() {
-    if (this.profileManager && this.bookId) {
-      if (this.fileFormat === 'txt') {
-        await this.profileManager.saveReadingProgress(this.bookId, this.currentPage, this.scrollOffset);
-      } else {
-        await this.profileManager.saveReadingProgress(this.bookId, 0, this.scrollOffset);
+  private doSaveProgress() {
+    if (!this.profileManager || !this.bookId) return;
+    let progressPercent: number = 0;
+    if (this.fileFormat === 'txt') {
+      if (this.isPageMode && this.pages.length > 0 && this.currentPage > 0 && this.displayHeight > 0) {
+        const linesPerPage: number = Math.max(Math.floor((this.displayHeight - this.textPaddingV * 2) / this.lineHeight), 5);
+        this.scrollOffset = this.currentPage * linesPerPage * this.lineHeight;
+      } else if (!this.isPageMode) {
+        const offset = this.scrollScroller.currentOffset();
+        this.scrollOffset = offset.yOffset;
+      }
+      if (this._totalPages > 0) {
+        progressPercent = Math.min(Math.round(this.currentPage / this._totalPages * 100), 100);
+      }
+    } else {
+      if (this._totalPages > 0) {
+        const page: number = Math.floor(this.scrollOffset / this.displayHeight);
+        progressPercent = Math.min(Math.round(page / this._totalPages * 100), 100);
       }
     }
+    this.profileManager.saveReadingProgress(this.bookId, this.currentPage, this.scrollOffset, progressPercent);
+  }
+
+  onPageHide() {
+    this.doSaveProgress();
+  }
+
+  async aboutToDisappear() {
+    this.doSaveProgress();
     const mainWindow = await window.getLastWindow(getContext());
     mainWindow.setWindowSystemBarProperties({
       statusBarColor: '#F5F5F5',
@@ -493,10 +530,15 @@ struct BookReaderPage {
       this.scrollOffset = offset.yOffset;
     })
     .onAreaChange((oldValue: Area, newValue: Area) => {
-      if (newValue.height > 0 && this.scrollOffset > 0) {
+      const newWidth: number = newValue.width as number;
+      const newHeight: number = newValue.height as number;
+      if (newWidth > 0) this.displayWidth = newWidth;
+      if (newHeight > 0) this.displayHeight = newHeight;
+      if (newHeight > 0 && this.scrollOffset > 0) {
         this.scrollScroller.scrollEdge(Edge.Top);
         this.scrollScroller.scrollTo({ xOffset: 0, yOffset: this.scrollOffset });
         this.scrollOffset = 0;
+        this.showProgressToast = false;
       }
     })
   }
@@ -606,9 +648,19 @@ struct BookReaderPage {
       const newWidth: number = newValue.width as number;
       const newHeight: number = newValue.height as number;
       if (this.isPageMode && (newWidth !== this.displayWidth || newHeight !== this.displayHeight || this.needsRecalc)) {
+        let savedLineIndex: number = 0;
+        if (!this.needsRecalc && this.displayHeight > 0 && this.currentPage > 0) {
+          const oldLinesPerPage: number = Math.max(Math.floor((this.displayHeight - this.textPaddingV * 2) / this.lineHeight), 5);
+          savedLineIndex = this.currentPage * oldLinesPerPage;
+        }
         this.displayWidth = newWidth;
         this.displayHeight = newHeight;
         this.calculatePages();
+        if (savedLineIndex > 0) {
+          const newLinesPerPage: number = Math.max(Math.floor((this.displayHeight - this.textPaddingV * 2) / this.lineHeight), 5);
+          this.currentPage = Math.min(Math.floor(savedLineIndex / newLinesPerPage), Math.max(0, this.pages.length - 1));
+        }
+        this.showProgressToast = false;
       }
     })
   }
@@ -628,8 +680,19 @@ struct BookReaderPage {
       .javaScriptProxy({
         object: this.bridge as object,
         name: 'readerBridge',
-        methodList: ['updateScroll', 'onViewerReady', 'onEpubRendered', 'onPdfRendered', 'requestToggleMenu'],
+        methodList: ['updateScroll', 'onViewerReady', 'onEpubRendered', 'onPdfRendered', 'requestToggleMenu', 'updateTotalPages'],
         controller: this.webViewController
+      })
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        const newWidth: number = newValue.width as number;
+        const newHeight: number = newValue.height as number;
+        if (newWidth > 0 && newHeight > 0 && (newWidth !== this.displayWidth || newHeight !== this.displayHeight)) {
+          this.displayWidth = newWidth;
+          this.displayHeight = newHeight;
+          if (this.webContentLoaded && this.isPageMode) {
+            this.webViewController.runJavaScript('if(typeof refreshPageLayout==="function")refreshPageLayout()');
+          }
+        }
       })
   }
 
@@ -671,6 +734,24 @@ struct BookReaderPage {
         }
         .width('100%')
         .height('100%')
+      }
+
+      if (this.showProgressToast) {
+        Row() {
+          LoadingProgress()
+            .width(16)
+            .height(16)
+            .color('#FFFFFF')
+          Text('阅读进度加载中')
+            .fontSize(13)
+            .fontColor('#FFFFFF')
+            .margin({ left: 8 })
+        }
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+        .backgroundColor('#CC000000')
+        .borderRadius(20)
+        .position({ x: '50%', y: '50%' })
+        .translate({ x: '-50%', y: '-50%' })
       }
     }
     .width('100%')

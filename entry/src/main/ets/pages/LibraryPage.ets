@@ -1,5 +1,6 @@
 import { util } from '@kit.ArkTS';
 import { router } from '@kit.ArkUI';
+import { UserProfileManager } from '../model/UserProfileManager';
 
 interface Book {
   id: string;
@@ -38,6 +39,7 @@ export struct LibraryPage {
   private tabs: string[] = ['发现', '小说', '图书', '听书', '漫剧', '必读榜'];
   private subTabs: string[] = ['推荐榜', '大热榜', '完结榜', '好评榜'];
   private filteredBooks: Book[] = [];
+  private profileManager: UserProfileManager | null = null;
 
   getFilteredBooks(): Book[] {
     if (!this.searchText.trim()) {
@@ -56,6 +58,7 @@ export struct LibraryPage {
 
   async aboutToAppear() {
     this.allBooks = await BookModel.getBookList();
+    this.profileManager = await UserProfileManager.getInstance();
     this.isLoading = false;
   }
 
@@ -67,11 +70,17 @@ export struct LibraryPage {
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .layoutWeight(1)
+        if (this.profileManager && this.profileManager.getProgressPercent(book.id) > 0) {
+          Text(`已读${this.profileManager.getProgressPercent(book.id)}%`)
+            .fontSize(12)
+            .fontColor('#FF8C00')
+        }
         Text(`#${book.id}`)
           .fontSize(14)
           .fontColor('#999999')
       }
       .width('100%')
+      .alignItems(VerticalAlign.Center)
 
       Text(`作者: ${book.author}`)
         .fontSize(14)
@@ -130,12 +139,21 @@ export struct LibraryPage {
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        Text(book.author)
-          .fontSize(11)
-          .fontColor('#666666')
-          .margin({ top: 4 })
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+        Row() {
+          Text(book.author)
+            .fontSize(11)
+            .fontColor('#666666')
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .layoutWeight(1)
+          if (this.profileManager && this.profileManager.getProgressPercent(book.id) > 0) {
+            Text(`已读${this.profileManager.getProgressPercent(book.id)}%`)
+              .fontSize(10)
+              .fontColor('#FF8C00')
+          }
+        }
+        .margin({ top: 4 })
+        .width('100%')
 
         Row() {
           ForEach(book.hashtags.slice(0, 2), (tag: string) => {

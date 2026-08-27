@@ -124,5 +124,68 @@
     "description": "OVERLORD轻小说第16卷下半部分，安兹的冒险继续展开。",
     "fileName": "OVERLORD 16  半森林精灵的神人 下 (丸山くがね) (Z-Library).epub",
     "cover": "app_icon.png"
+  },
+  {
+    "id": "015",
+    "title": "苏联的最后一年",
+    "author": "罗伊·麦德维杰夫",
+    "hashtags": ["历史", "苏联", "政治"],
+    "description": "俄罗斯历史学家亲述苏联解体前夕的政治风云与社会剧变。",
+    "fileName": "苏联的最后一年 ([俄]罗伊・麦德维杰夫，王晓玉  姚强译) (Z-Library).pdf",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "016",
+    "title": "神灵之手",
+    "author": "R·A·勃沙特",
+    "hashtags": ["历史", "红军", "回忆录"],
+    "description": "一位被红军释放的外国传教士记录的长征见闻录，珍贵的亲历者视角。",
+    "fileName": "神灵之手：一个被红军释放的外国传教士的见闻录 (R·A·勃沙特) (Z-Library).pdf",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "017",
+    "title": "泥濘中的老虎",
+    "author": "奥托·卡留斯",
+    "hashtags": ["军事", "二战", "回忆录"],
+    "description": "德国战车指挥官的战争回忆，东线装甲作战的第一手记录。",
+    "fileName": "泥濘中的老虎：德國戰車指揮官的戰爭回憶 (奧托‧卡留斯 (著) ； 常靖 、 滕昕雲 (譯)) (Z-Library).pdf",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "018",
+    "title": "民兵军事训练手册",
+    "author": "中国人民解放军总参谋部动员部",
+    "hashtags": ["军事", "训练", "手册"],
+    "description": "解放军总参动员部编写的民兵军事训练指导手册，涵盖基础军事技能。",
+    "fileName": "民兵军事训练手册 (中国人民解放军总参谋部动员部编) (Z-Library).pdf",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "019",
+    "title": "新赤脚医生手册",
+    "author": "《新赤脚医生手册》编辑部",
+    "hashtags": ["医学", "手册", "实用"],
+    "description": "面向基层的医疗实用手册，涵盖常见病诊断与中西医结合治疗。",
+    "fileName": "新赤脚医生手册 (《新赤脚医生手册》编辑部) (Z-Library).pdf",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "020",
+    "title": "军地两用人才之友（续编本）",
+    "author": "沈阳军区政治部研究室",
+    "hashtags": ["军事", "技能", "手册"],
+    "description": "军地两用人才培养续编，涵盖更多实用技能与知识领域。",
+    "fileName": "军地两用人才之友续编本 (沈阳军区政治部研究室) (Z-Library).pdf",
+    "cover": "app_icon.png"
+  },
+  {
+    "id": "021",
+    "title": "军地两用人才之友",
+    "author": "沈阳军区政治部研究室",
+    "hashtags": ["军事", "技能", "手册"],
+    "description": "培养军地两用人才的实用指南，涵盖军事与民用技能。",
+    "fileName": "军地两用人才之友 (沈阳军区政治部研究室) (Z-Library).pdf",
+    "cover": "app_icon.png"
   }
 ]

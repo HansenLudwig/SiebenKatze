@@ -49,7 +49,7 @@ export struct MainPage {
 
       Row() {
         this.navItem(0, 'sys.symbol.books', '书架')
-        this.navItem(1, 'sys.symbol.building_2', '书库')
+        this.navItem(1, 'sys.symbol.building_2', '书城')
         this.navItem(2, 'sys.symbol.person', '我的')
       }
       .width('100%')

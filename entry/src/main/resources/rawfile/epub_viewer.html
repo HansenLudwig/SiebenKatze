@@ -18,8 +18,8 @@ body { background: #FFF9F0; overflow-y: auto; -webkit-overflow-scrolling: touch;
   -webkit-text-size-adjust: 100%;
 }
 #content p { text-indent: 2em; margin: 0.5em 0; }
-#content img { max-width: 100%; height: auto; display: block; margin: 0.5em auto; }
-#content h1, #content h2, #content h3, #content h4, #content h5, #content h6 { margin: 1em 0 0.5em; line-height: 1.3; }
+#content img { max-width: 100%; height: auto; display: block; margin: 0.5em auto; break-inside: avoid; }
+#content h1, #content h2, #content h3, #content h4, #content h5, #content h6 { margin: 1em 0 0.5em; line-height: 1.3; break-inside: avoid; break-after: avoid; }
 #content a { color: #FF8C00; text-decoration: none; }
 #content table { max-width: 100%; overflow-x: auto; }
 #loading { text-align: center; padding: 60px 20px; color: #666; font-size: 16px; }
@@ -101,6 +101,28 @@ async function processImages() {
       }
     }
   }
+}
+
+function waitForImages() {
+  return new Promise(function(resolve) {
+    var images = document.querySelectorAll('#content img');
+    var total = images.length;
+    if (total === 0) { resolve(); return; }
+    var loaded = 0;
+    function checkDone() {
+      loaded++;
+      if (loaded >= total) resolve();
+    }
+    for (var i = 0; i < total; i++) {
+      if (images[i].complete && images[i].naturalWidth > 0) {
+        checkDone();
+      } else {
+        images[i].addEventListener('load', checkDone);
+        images[i].addEventListener('error', checkDone);
+      }
+    }
+    setTimeout(resolve, 3000);
+  });
 }
 
 async function renderEpubFromBase64(base64Data) {
@@ -203,8 +225,12 @@ async function renderEpubFromBase64(base64Data) {
     document.getElementById('content').innerHTML = bodyContent;
 
     await processImages();
+    await waitForImages();
 
     if (window.readerBridge) {
+      var totalHeight = document.getElementById('content').scrollHeight;
+      var totalPages = Math.max(1, Math.ceil(totalHeight / window.innerHeight));
+      window.readerBridge.updateTotalPages(totalPages);
       window.readerBridge.onEpubRendered();
     }
   } catch (e) {
@@ -265,12 +291,81 @@ function slideToCurrentPage() {
   var content = document.getElementById('content');
   if (!content) return;
   var pageWidth = window.innerWidth;
+  var pageHeight = window.innerHeight;
   var offsetX = -__currentPage * pageWidth;
   content.style.transition = 'transform 0.3s ease-in-out';
   content.style.transform = 'translateX(' + offsetX + 'px)';
+  if (window.readerBridge) {
+    window.readerBridge.updateScroll(__currentPage * pageHeight);
+  }
+}
+
+var __pageRecalcTimer = null;
+
+function applyImageConstraints(pageMode, pageHeight) {
+  var images = document.querySelectorAll('#content img');
+  for (var i = 0; i < images.length; i++) {
+    if (pageMode) {
+      images[i].style.maxHeight = Math.floor(pageHeight * 0.9) + 'px';
+      images[i].style.objectFit = 'contain';
+    } else {
+      images[i].style.maxHeight = '';
+      images[i].style.objectFit = '';
+    }
+  }
+}
+
+function recalcPageLayout() {
+  var content = document.getElementById('content');
+  if (!content || !__pageMode) return;
+  var pageWidth = window.innerWidth;
+  var pageHeight = window.innerHeight;
+  var padH = 20;
+  var colWidth = pageWidth - padH * 2;
+
+  content.style.visibility = 'hidden';
+  content.style.height = '';
+  content.style.columnWidth = '';
+  content.style.columnFill = '';
+  content.style.columnGap = '';
+  content.style.boxSizing = 'border-box';
+  content.style.padding = '20px';
+  content.style.width = '';
+  content.style.transform = 'none';
+
+  var totalHeight = content.scrollHeight;
+  var newTotalPages = Math.max(1, Math.ceil(totalHeight / pageHeight));
+
+  content.style.boxSizing = 'content-box';
+  content.style.paddingTop = '0';
+  content.style.paddingBottom = '0';
+  content.style.paddingLeft = padH + 'px';
+  content.style.paddingRight = padH + 'px';
+  content.style.width = (newTotalPages * pageWidth + padH * 2) + 'px';
+  content.style.height = pageHeight + 'px';
+  content.style.columnWidth = colWidth + 'px';
+  content.style.columnGap = (padH * 2) + 'px';
+  content.style.columnFill = 'auto';
+  content.style.visibility = '';
+  content.style.transform = 'translateX(' + (-__currentPage * pageWidth) + 'px)';
+
+  if (newTotalPages !== __totalPages) {
+    __totalPages = newTotalPages;
+    if (__currentPage >= __totalPages) {
+      __currentPage = __totalPages - 1;
+      content.style.transform = 'translateX(' + (-__currentPage * pageWidth) + 'px)';
+    }
+    if (window.readerBridge) {
+      window.readerBridge.updateTotalPages(__totalPages);
+    }
+  }
 }
 
 window.setPageMode = function(enabled, initialScrollY) {
+  if (__pageRecalcTimer) {
+    clearTimeout(__pageRecalcTimer);
+    __pageRecalcTimer = null;
+  }
   __pageMode = enabled;
   var content = document.getElementById('content');
   if (!content) return;
@@ -278,6 +373,9 @@ window.setPageMode = function(enabled, initialScrollY) {
   var pageHeight = window.innerHeight;
   if (enabled) {
     __scrollPos = (initialScrollY !== undefined && initialScrollY > 0) ? initialScrollY : window.scrollY;
+
+    applyImageConstraints(true, pageHeight);
+    void content.offsetHeight;
 
     var totalHeight = content.scrollHeight;
     var padH = 20;
@@ -305,7 +403,13 @@ window.setPageMode = function(enabled, initialScrollY) {
 
     __currentPage = Math.min(Math.floor(__scrollPos / pageHeight), __totalPages - 1);
     content.style.transform = 'translateX(' + (-__currentPage * pageWidth) + 'px)';
+
+    __pageRecalcTimer = setTimeout(function() {
+      recalcPageLayout();
+    }, 1000);
   } else {
+    applyImageConstraints(false, 0);
+
     content.style.boxSizing = '';
     content.style.paddingTop = '';
     content.style.paddingBottom = '';
@@ -329,6 +433,78 @@ window.setPageMode = function(enabled, initialScrollY) {
     window.scrollTo(0, __currentPage * pageHeight);
   }
 };
+
+var __refreshTimer = null;
+
+window.refreshPageLayout = function() {
+  if (!__pageMode) return;
+  if (__refreshTimer) clearTimeout(__refreshTimer);
+  __refreshTimer = setTimeout(function() {
+    __refreshTimer = null;
+    doRefreshPageLayout();
+  }, 200);
+};
+
+function doRefreshPageLayout() {
+  if (__pageRecalcTimer) {
+    clearTimeout(__pageRecalcTimer);
+    __pageRecalcTimer = null;
+  }
+  var content = document.getElementById('content');
+  if (!content || !__pageMode) return;
+  var pageWidth = window.innerWidth;
+  var pageHeight = window.innerHeight;
+  var savedProgress = __totalPages > 1 ? __currentPage / (__totalPages - 1) : 0;
+
+  content.style.visibility = 'hidden';
+  content.style.height = '';
+  content.style.columnWidth = '';
+  content.style.columnFill = '';
+  content.style.columnGap = '';
+  content.style.overflow = '';
+  content.style.boxSizing = 'border-box';
+  content.style.padding = '20px';
+  content.style.width = '';
+  content.style.transform = 'none';
+  content.style.transition = 'none';
+
+  void content.offsetHeight;
+
+  applyImageConstraints(true, pageHeight);
+  void content.offsetHeight;
+
+  var totalHeight = content.scrollHeight;
+  var padH = 20;
+  var colWidth = pageWidth - padH * 2;
+  __totalPages = Math.max(1, Math.ceil(totalHeight / pageHeight));
+
+  content.style.boxSizing = 'content-box';
+  content.style.paddingTop = '0';
+  content.style.paddingBottom = '0';
+  content.style.paddingLeft = padH + 'px';
+  content.style.paddingRight = padH + 'px';
+  content.style.width = (__totalPages * pageWidth + padH * 2) + 'px';
+  content.style.height = pageHeight + 'px';
+  content.style.columnWidth = colWidth + 'px';
+  content.style.columnGap = (padH * 2) + 'px';
+  content.style.columnFill = 'auto';
+  content.style.overflow = 'visible';
+  content.style.visibility = '';
+
+  __currentPage = Math.min(Math.round(savedProgress * Math.max(1, __totalPages - 1)), __totalPages - 1);
+  content.style.transform = 'translateX(' + (-__currentPage * pageWidth) + 'px)';
+
+  if (window.readerBridge) {
+    window.readerBridge.updateTotalPages(__totalPages);
+    window.readerBridge.updateScroll(__currentPage * pageHeight);
+  }
+}
+
+window.addEventListener('resize', function() {
+  if (typeof window.refreshPageLayout === 'function') {
+    window.refreshPageLayout();
+  }
+});
 
 window.loadEpubFromBase64 = renderEpubFromBase64;
 

@@ -33,6 +33,7 @@ export struct BookshelfPage {
   @State bookList: Book[] = [];
   @State isLoading: boolean = true;
   private lastVersion: number = -1;
+  private profileManager: UserProfileManager | null = null;
 
   async aboutToAppear() {
     await this.loadBooks();
@@ -41,6 +42,7 @@ export struct BookshelfPage {
   async loadBooks() {
     const allBooks = await BookModel.getBookList();
     const manager = await UserProfileManager.getInstance();
+    this.profileManager = manager;
     const currentVersion = manager.getVersion();
     
     if (currentVersion !== this.lastVersion) {
@@ -60,11 +62,17 @@ export struct BookshelfPage {
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
           .layoutWeight(1)
+        if (this.profileManager && this.profileManager.getProgressPercent(book.id) > 0) {
+          Text(`已读${this.profileManager.getProgressPercent(book.id)}%`)
+            .fontSize(12)
+            .fontColor('#FF8C00')
+        }
         Text(`#${book.id}`)
           .fontSize(14)
           .fontColor('#999999')
       }
       .width('100%')
+      .alignItems(VerticalAlign.Center)
 
       Text(`作者: ${book.author}`)
         .fontSize(14)
@@ -125,7 +133,7 @@ export struct BookshelfPage {
           Text('暂无收藏书籍')
             .fontSize(16)
             .fontColor('#999999')
-          Text('去书库添加感兴趣的书籍吧')
+          Text('去书城添加感兴趣的书籍吧')
             .fontSize(14)
             .fontColor('#CCCCCC')
             .margin({ top: 8 })
