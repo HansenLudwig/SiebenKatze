@@ -1,0 +1,75 @@
+entry/src/main/ets/pages/BookshelfPage.ets
+  s_ab224f61aad6d9::t_f3c3c3d9e6b1ce 45
+  s_ab224f61aad6d9::t_0a1dd76c3519bd 65-69,75
+  s_ab224f61aad6d9::t_5513c63170c366 36
+entry/src/main/resources/rawfile/epub_viewer.html
+  s_ab224f61aad6d9::t_15ae08ac76a216 228
+  s_ab224f61aad6d9::t_b7a8ca9fc4e591 231-233
+  s_ab224f61aad6d9::t_4ac8ad33edc883 378
+  s_ab224f61aad6d9::t_110314b53101c0 21-22
+  s_ab224f61aad6d9::t_74f29b9b9edef1 106-127
+  s_ab224f61aad6d9::t_602bbb97fc7c71 303-325,352-361,365-368,377,379,406-409,411-412
+  s_ab224f61aad6d9::t_1e9158d7c33040 294,298-300
+  s_ab224f61aad6d9::t_09ac0abe64706f 301,437-508
+  s_ab224f61aad6d9::t_cf0cf901c2cad8 326-351
+  s_ab224f61aad6d9::t_8b8181ee1695cd 302
+entry/src/main/resources/rawfile/pdf_viewer.html
+  s_ab224f61aad6d9::t_08b6adbab9892b 13
+  s_ab224f61aad6d9::t_7ea367d6874bf5 154,158-160
+  s_ab224f61aad6d9::t_9c7431ae7f034c 172-175,177-181,189,202,205,207-211,220
+  s_ab224f61aad6d9::t_377219b39f351b 237-280
+  s_ab224f61aad6d9::t_08ce4e1d47545a 99
+entry/src/main/ets/pages/LibraryPage.ets
+  s_ab224f61aad6d9::t_110a82e2d772be 3
+  s_ab224f61aad6d9::t_3252a891dac4ae 73-77,83
+  s_ab224f61aad6d9::t_e8add0bfc9d756 142-156
+  s_ab224f61aad6d9::t_55711d972502f1 42
+  s_ab224f61aad6d9::t_5b90c28d112797 61
+entry/src/main/ets/pages/BookReaderPage.ets
+  s_ab224f61aad6d9::t_e974c45e5ea8af 82,85
+  s_ab224f61aad6d9::t_c992f98ac005f6 19
+  s_ab224f61aad6d9::t_a08617c860d775 651-655,659-662
+  s_ab224f61aad6d9::t_33af2425ae180c 686-696
+  s_ab224f61aad6d9::t_150ce5cf8104df 150-152
+  s_ab224f61aad6d9::t_9f8993339b66df 55
+  s_ab224f61aad6d9::t_ffd7c19f1bbcf2 249,258-264,267
+  s_ab224f61aad6d9::t_90e361577cbae4 257,738-755
+  s_ab224f61aad6d9::t_31d8542d90644d 120,125,127-128,136,141,143-144
+  s_ab224f61aad6d9::t_73aa41696572be 238
+  s_ab224f61aad6d9::t_7c1ae75a790907 53
+  s_ab224f61aad6d9::t_07ea9b9e0c0107 663
+  s_ab224f61aad6d9::t_fd3169cd8a70fd 683
+  s_ab224f61aad6d9::t_026f92071abd2d 533-537
+  s_ab224f61aad6d9::t_f093c0fe7d4879 541
+  s_ab224f61aad6d9::t_de39eae0806706 247-248,250-256,268-275
+entry/src/main/resources/rawfile/book_list.json
+  s_ab224f61aad6d9::t_3e47db1a18dc00 127-189
+entry/src/main/ets/pages/MainPage.ets
+  h_4123ebe5b0541a 52
+entry/src/main/ets/model/UserProfileManager.ets
+  s_ab224f61aad6d9::t_af8f153ab66e9a 102,107-108,113-115
+  s_ab224f61aad6d9::t_6e9ccc597eee18 8
+  s_ab224f61aad6d9::t_d502dc32de87e5 116-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "20bc5282541dda05ec2422bf9da5b3149945b952",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_ab224f61aad6d9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fc7972f6dffeUQqDznoz5Yejc6",
+        "model": "glm-5.1"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 64
+    }
+  }
+}
