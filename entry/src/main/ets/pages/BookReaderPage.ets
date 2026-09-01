@@ -1,6 +1,8 @@
 import { util } from '@kit.ArkTS';
 import { router, window } from '@kit.ArkUI';
 import { webview } from '@kit.ArkWeb';
+import { common } from '@kit.AbilityKit';
+import { FunctionComponent, FunctionController, ButtonType } from '@kit.AgentFrameworkKit';
 import { UserProfileManager } from '../model/UserProfileManager';
 import { EpubParser } from '../model/EpubParser';
 
@@ -45,14 +47,20 @@ struct BookReaderPage {
   private profileManager: UserProfileManager | null = null;
   private scrollScroller: Scroller = new Scroller();
   private needsRecalc: boolean = true;
-  private isSwiping: boolean = false;
   private webContentLoaded: boolean = false;
   private base64Data: string = '';
   private bridge: ReaderBridge = new ReaderBridge();
-  private isSliding: boolean = false;
   private _totalPages: number = 0;
-  @State pageOffsetX: number = 0;
+  @State offsetX: number = 0;
+  @State leftPageContent: string = '';
+  @State midPageContent: string = '';
+  @State rightPageContent: string = '';
   @State showProgressToast: boolean = false;
+  @State agentQueryText: string = '';
+
+  private readonly AGENT_ID: string = 'agent-a2a-sieben-katze';
+  private functionController: FunctionController = new FunctionController();
+  private agentSupported: boolean = false;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -150,6 +158,29 @@ struct BookReaderPage {
     this.bridge.updateTotalPages = (total: number): void => {
       this._totalPages = total;
     };
+
+    if (this.AGENT_ID.length > 0) {
+      try {
+        const uiContext = getContext(this) as common.UIAbilityContext;
+        this.functionController.isAgentSupport(uiContext, this.AGENT_ID).then((supported: boolean) => {
+          this.agentSupported = supported;
+          console.info('[Agent] isAgentSupport result: ' + supported);
+        }).catch((err: BusinessError) => {
+          this.agentSupported = false;
+          console.error('[Agent] isAgentSupport failed: code=' + err.code + ' msg=' + err.message);
+        });
+      } catch (e) {
+        this.agentSupported = false;
+        console.error('[Agent] isAgentSupport exception: ' + e);
+      }
+      this.functionController.on('agentDialogOpened', () => {
+        console.info('[Agent] dialog opened');
+      });
+      this.functionController.on('agentDialogClosed', () => {
+        console.info('[Agent] dialog closed');
+        this.showMenu = false;
+      });
+    }
   }
 
   private sendContentToViewer() {
@@ -281,6 +312,9 @@ struct BookReaderPage {
   }
 
   toggleMenu() {
+    if (!this.showMenu) {
+      this.buildAgentQueryText();
+    }
     this.showMenu = !this.showMenu;
   }
 
@@ -295,6 +329,7 @@ struct BookReaderPage {
           this.currentPage = 0;
         }
         this.needsRecalc = true;
+        this.simulatePageContent();
       } else {
         if (this.pages.length > 0 && this.currentPage > 0 && this.displayHeight > 0) {
           const linesPerPage: number = Math.max(Math.floor((this.displayHeight - this.textPaddingV * 2) / this.lineHeight), 5);
@@ -316,6 +351,7 @@ struct BookReaderPage {
   prevPage() {
     if (this.currentPage > 0) {
       this.currentPage--;
+      this.simulatePageContent();
     } else {
       router.back();
     }
@@ -324,40 +360,102 @@ struct BookReaderPage {
   nextPage() {
     if (this.currentPage < this.pages.length - 1) {
       this.currentPage++;
+      this.simulatePageContent();
     }
   }
 
-  slideToPrevPage() {
-    if (this.isSliding) return;
-    if (this.currentPage <= 0) {
-      router.back();
-      return;
+  private simulatePageContent() {
+    this.midPageContent = this.pages[this.currentPage] || '';
+    if (this.currentPage > 0) {
+      this.leftPageContent = this.pages[this.currentPage - 1] || '';
+    } else {
+      this.leftPageContent = '';
     }
-    this.isSliding = true;
-    this.currentPage--;
-    this.pageOffsetX = -this.displayWidth;
-    setTimeout(() => {
-      animateTo({ duration: 280, curve: Curve.EaseInOut, onFinish: () => {
-        this.isSliding = false;
-      }}, () => {
-        this.pageOffsetX = 0;
-      });
-    }, 16);
+    if (this.currentPage < this.pages.length - 1) {
+      this.rightPageContent = this.pages[this.currentPage + 1] || '';
+    } else {
+      this.rightPageContent = '';
+    }
   }
 
-  slideToNextPage() {
-    if (this.isSliding) return;
-    if (this.currentPage >= this.pages.length - 1) return;
-    this.isSliding = true;
-    this.currentPage++;
-    this.pageOffsetX = this.displayWidth;
-    setTimeout(() => {
-      animateTo({ duration: 280, curve: Curve.EaseInOut, onFinish: () => {
-        this.isSliding = false;
-      }}, () => {
-        this.pageOffsetX = 0;
-      });
-    }, 16);
+  private pageAnimateTo(targetOffset: number, isForward: boolean) {
+    animateTo({
+      duration: 280,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        if (targetOffset !== 0) {
+          if (isForward && this.currentPage < this.pages.length - 1) {
+            this.currentPage++;
+          } else if (!isForward && this.currentPage > 0) {
+            this.currentPage--;
+          }
+        }
+        this.offsetX = 0;
+        this.simulatePageContent();
+      }
+    }, () => {
+      this.offsetX = targetOffset;
+    });
+  }
+
+  private async buildAgentQueryText() {
+    const totalPages: number = this.fileFormat === 'txt' ? this.pages.length : this._totalPages;
+    let progressPercent: number = 0;
+    if (totalPages > 0) {
+      if (this.fileFormat === 'txt' && this.pages.length > 0) {
+        progressPercent = Math.min(Math.round(this.currentPage / totalPages * 100), 100);
+      } else if (this._totalPages > 0 && this.displayHeight > 0) {
+        const page: number = Math.floor(this.scrollOffset / this.displayHeight);
+        progressPercent = Math.min(Math.round(page / this._totalPages * 100), 100);
+      }
+    }
+
+    let prevSnippet: string = '';
+    if (this.leftPageContent.length > 0) {
+      prevSnippet = this.leftPageContent.length > 200
+        ? this.leftPageContent.substring(this.leftPageContent.length - 200) : this.leftPageContent;
+    }
+    let nextSnippet: string = '';
+    if (this.rightPageContent.length > 0) {
+      nextSnippet = this.rightPageContent.length > 200
+        ? this.rightPageContent.substring(0, 200) : this.rightPageContent;
+    }
+
+    const contextObj: Record<string, Object> = {
+      'title': this.title,
+      'format': this.fileFormat.toUpperCase(),
+      'currentPage': this.currentPage,
+      'totalPages': totalPages,
+      'progressPercent': progressPercent,
+      'currentContent': this.midPageContent,
+      'prevContent': prevSnippet,
+      'nextContent': nextSnippet,
+    };
+    AppStorage.setOrCreate<string>('agent_book_context', JSON.stringify(contextObj));
+
+    try {
+      const ctx = getContext(this).resourceManager;
+      const rawFile: Uint8Array = await ctx.getRawFileContent('book_list.json');
+      const decoder = new util.TextDecoder('utf-8');
+      const bookListJson: string = decoder.decodeToString(rawFile);
+      AppStorage.setOrCreate<string>('agent_book_list', bookListJson);
+    } catch (e) {
+      console.error('[Agent] load book list failed: ' + e);
+    }
+
+    let text: string = `我正在阅读《${this.title}》（${this.fileFormat.toUpperCase()}格式），`;
+    text += `当前在第${this.currentPage + 1}页，共${totalPages}页，阅读进度${progressPercent}%。`;
+    if (this.fileFormat === 'txt' && this.midPageContent.length > 0) {
+      text += `\n\n当前页面内容：\n${this.midPageContent}`;
+    }
+    if (prevSnippet.length > 0) {
+      text += `\n\n上一页末尾内容：\n${prevSnippet}`;
+    }
+    if (nextSnippet.length > 0) {
+      text += `\n\n下一页开头内容：\n${nextSnippet}`;
+    }
+    this.agentQueryText = text;
+    console.info('[Agent] queryText built, length=' + text.length);
   }
 
   @Builder
@@ -381,6 +479,25 @@ struct BookReaderPage {
         .textAlign(TextAlign.Center)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+      FunctionComponent({
+        agentId: this.AGENT_ID,
+        onError: (err: BusinessError) => {
+          console.error('[Agent] FunctionComponent error: code=' + err.code + ' msg=' + err.message);
+        },
+        options: {
+          title: '',
+          buttonType: ButtonType.CIRCLE,
+          isShowShadow: false,
+          backgroundColor: '#00000000',
+          iconColors: ['#FFFFFF'],
+          titleColors: ['#FFFFFF'],
+          queryText: this.agentQueryText,
+        },
+        controller: this.functionController
+      })
+        .width(36)
+        .height(36)
 
       Button(this.isInBookshelf ? '已加入书架' : '加入书架')
         .fontSize(14)
@@ -452,18 +569,6 @@ struct BookReaderPage {
             .fontSize(24)
             .fontColor([Color.Black])
           Text('目录')
-            .fontSize(12)
-            .fontColor('#333333')
-            .margin({ top: 4 })
-        }
-        .layoutWeight(1)
-        .padding(8)
-
-        Column() {
-          SymbolGlyph($r('sys.symbol.message'))
-            .fontSize(24)
-            .fontColor([Color.Black])
-          Text('讨论')
             .fontSize(12)
             .fontColor('#333333')
             .margin({ top: 4 })
@@ -547,7 +652,7 @@ struct BookReaderPage {
   pageContent() {
     Stack() {
       Column() {
-        Text(this.pages[this.currentPage] || '')
+        Text(this.rightPageContent)
           .fontSize(this.fontSize)
           .fontColor('#333333')
           .lineHeight(this.lineHeight)
@@ -558,76 +663,34 @@ struct BookReaderPage {
       .height('100%')
       .alignItems(HorizontalAlign.Start)
       .justifyContent(FlexAlign.Start)
-      .translate({ x: this.pageOffsetX })
 
-      Row() {
-        Column()
-          .width('15%')
-          .height('100%')
-          .onClick(() => {
-            if (!this.isSwiping) {
-              this.slideToPrevPage();
-            }
-            this.isSwiping = false;
-          })
-          .gesture(
-            PanGesture()
-              .onActionStart(() => {
-                this.isSwiping = true;
-              })
-              .onActionEnd((event: GestureEvent) => {
-                if (event.offsetX > 30) {
-                  this.slideToPrevPage();
-                }
-              })
-          )
-
-        Column()
-          .width('70%')
-          .height('100%')
-          .onClick(() => {
-            if (!this.isSwiping) {
-              this.toggleMenu();
-            }
-            this.isSwiping = false;
-          })
-          .gesture(
-            PanGesture()
-              .onActionStart(() => {
-                this.isSwiping = true;
-              })
-              .onActionEnd((event: GestureEvent) => {
-                if (event.offsetX < -30) {
-                  this.slideToNextPage();
-                } else if (event.offsetX > 30) {
-                  this.slideToPrevPage();
-                }
-              })
-          )
-
-        Column()
-          .width('15%')
-          .height('100%')
-          .onClick(() => {
-            if (!this.isSwiping) {
-              this.slideToNextPage();
-            }
-            this.isSwiping = false;
-          })
-          .gesture(
-            PanGesture()
-              .onActionStart(() => {
-                this.isSwiping = true;
-              })
-              .onActionEnd((event: GestureEvent) => {
-                if (event.offsetX < -30) {
-                  this.slideToNextPage();
-                }
-              })
-          )
+      Column() {
+        Text(this.midPageContent)
+          .fontSize(this.fontSize)
+          .fontColor('#333333')
+          .lineHeight(this.lineHeight)
+          .padding({ left: this.textPaddingH, right: this.textPaddingH, top: this.textPaddingV, bottom: this.textPaddingV })
+          .width('100%')
       }
       .width('100%')
       .height('100%')
+      .alignItems(HorizontalAlign.Start)
+      .justifyContent(FlexAlign.Start)
+      .translate({ x: this.offsetX >= 0 ? 0 : this.offsetX })
+
+      Column() {
+        Text(this.leftPageContent)
+          .fontSize(this.fontSize)
+          .fontColor('#333333')
+          .lineHeight(this.lineHeight)
+          .padding({ left: this.textPaddingH, right: this.textPaddingH, top: this.textPaddingV, bottom: this.textPaddingV })
+          .width('100%')
+      }
+      .width('100%')
+      .height('100%')
+      .alignItems(HorizontalAlign.Start)
+      .justifyContent(FlexAlign.Start)
+      .translate({ x: -this.displayWidth + this.offsetX })
 
       if (!this.showMenu) {
         Text(`${this.currentPage + 1}/${this.pages.length}`)
@@ -644,6 +707,40 @@ struct BookReaderPage {
     .width('100%')
     .layoutWeight(1)
     .clip(true)
+    .gesture(
+      GestureGroup(GestureMode.Exclusive,
+        PanGesture(new PanGestureOptions({ direction: PanDirection.Horizontal }))
+          .onActionStart(() => {
+            this.offsetX = 0;
+          })
+          .onActionUpdate((event?: GestureEvent) => {
+            if (event) {
+              if (event.offsetX > 0 && this.currentPage <= 0) {
+                this.offsetX = event.offsetX * 0.3;
+              } else if (event.offsetX < 0 && this.currentPage >= this.pages.length - 1) {
+                this.offsetX = event.offsetX * 0.3;
+              } else {
+                this.offsetX = event.offsetX;
+              }
+            }
+          })
+          .onActionEnd(() => {
+            if (this.offsetX < -50 && this.currentPage < this.pages.length - 1) {
+              this.pageAnimateTo(-this.displayWidth, true);
+            } else if (this.offsetX > 50 && this.currentPage > 0) {
+              this.pageAnimateTo(this.displayWidth, false);
+            } else if (this.offsetX > 15 && this.currentPage <= 0) {
+              router.back();
+            } else {
+              this.pageAnimateTo(0, false);
+            }
+          }),
+        TapGesture()
+          .onAction(() => {
+            this.toggleMenu();
+          })
+      )
+    )
     .onAreaChange((oldValue: Area, newValue: Area) => {
       const newWidth: number = newValue.width as number;
       const newHeight: number = newValue.height as number;
@@ -660,6 +757,7 @@ struct BookReaderPage {
           const newLinesPerPage: number = Math.max(Math.floor((this.displayHeight - this.textPaddingV * 2) / this.lineHeight), 5);
           this.currentPage = Math.min(Math.floor(savedLineIndex / newLinesPerPage), Math.max(0, this.pages.length - 1));
         }
+        this.simulatePageContent();
         this.showProgressToast = false;
       }
     })

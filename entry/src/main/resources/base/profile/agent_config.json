@@ -1,0 +1,56 @@
+{
+  "agentCards": [
+    {
+      "agentId": "agent-a2a-sieben-katze",
+      "name": "柒喵伴读助手",
+      "description": "提供书籍阅读上下文信息、当前页面内容、阅读进度查询等功能的智能阅读助手",
+      "provider": {
+        "organization": "SiebenKatze",
+        "url": "https://example.com"
+      },
+      "version": "1.0.0",
+      "capabilities": {
+        "streaming": true,
+        "pushNotifications": true,
+        "stateTransitionHistory": false
+      },
+      "defaultInputModes": ["text/plain"],
+      "defaultOutputModes": ["text/plain", "application/json"],
+      "skills": [
+        {
+          "id": "recommend_books",
+          "name": "推荐书籍",
+          "description": "根据用户当前的阅读偏好、阅读历史和已读书籍，从应用书库中推荐可能感兴趣的书籍。返回书库中的书籍列表，包含书名、作者、标签和简介，供小艺进行个性化推荐。",
+          "tags": ["推荐", "书籍", "书单", "发现", "个性化"],
+          "examples": ["给我推荐几本书", "有什么好书推荐", "帮我找几本好看的书", "推荐一些类似的书", "不知道读什么，推荐一下"],
+          "inputModes": ["text/plain"],
+          "outputModes": ["text/plain", "application/json"]
+        },
+        {
+          "id": "summarize_content",
+          "name": "内容总结",
+          "description": "获取用户当前正在阅读的页面内容及上下文信息，供小艺进行内容总结和摘要概括。返回当前页面全文、上一页末尾摘要、下一页开头摘要、书名、当前页码、总页数、阅读进度等上下文信息，帮助小艺理解用户阅读场景并生成内容总结。",
+          "tags": ["总结", "摘要", "内容", "概括", "当前页面", "阅读"],
+          "examples": [
+            "帮我总结一下当前页面的内容",
+            "这一页讲了什么",
+            "概括一下当前的内容",
+            "总结一下我正在读的内容",
+            "帮我理解一下当前页面的内容"
+          ],
+          "inputModes": ["text/plain"],
+          "outputModes": ["text/plain", "application/json"]
+        }
+      ],
+      "iconUrl": "https://example.com/icon.png",
+      "category": "阅读",
+      "appInfo": {
+        "bundleName": "com.example.siebenkatze",
+        "moduleName": "entry",
+        "abilityName": "AgentExtAbility",
+        "deviceTypes": ["phone"],
+        "minAppVersion": "1.0.0"
+      }
+    }
+  ]
+}

@@ -39,6 +39,20 @@
     ],
     "extensionAbilities": [
       {
+        "name": "AgentExtAbility",
+        "icon": "$media:layered_image",
+        "description": "$string:module_desc",
+        "type": "partnerAgent",
+        "exported": true,
+        "srcEntry": "./ets/agentextability/AgentExtAbility.ets",
+        "metadata": [
+          {
+            "name": "ohos.extension.agent",
+            "resource": "$profile:agent_config"
+          }
+        ]
+      },
+      {
         "name": "EntryBackupAbility",
         "srcEntry": "./ets/entrybackupability/EntryBackupAbility.ets",
         "type": "backup",
