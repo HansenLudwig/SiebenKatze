@@ -1,0 +1,192 @@
+entry/src/main/ets/pages/BookReaderPage.ets
+  s_ab224f61aad6d9::t_bbb0aefda69364 402-411,446-450,452-453,455-457
+  s_ab224f61aad6d9::t_c524fb123b4285 176,178
+  s_ab224f61aad6d9::t_a7317e18e736e1 401,435-444
+  s_ab224f61aad6d9::t_454707bae47422 61
+  s_ab224f61aad6d9::t_ae9e6f471acf34 167-168,170,174
+  s_ab224f61aad6d9::t_9912f1b496b179 483-497,499-500
+  s_ab224f61aad6d9::t_406db757862aee 501
+  s_ab224f61aad6d9::t_373c93ed4d7fe3 655,667-679,681-687,691-693,710-743,760
+  s_ab224f61aad6d9::t_f5ce780f473adc 458
+  s_ab224f61aad6d9::t_1af9bfd57bd058 181
+  s_ab224f61aad6d9::t_fce57cef6dc32f 332
+  s_ab224f61aad6d9::t_8218a15946b1cd 315-317
+  s_ab224f61aad6d9::t_81a0514f6d0def 498
+  s_ab224f61aad6d9::t_91a969442a7e9f 177,180
+  s_ab224f61aad6d9::t_53af54b368d307 161-166,169,171-173,175,179,182-183
+  s_ab224f61aad6d9::t_909937b568847a 412-434,445,451,454
+  s_ab224f61aad6d9::t_180456c4402708 59
+  s_ab224f61aad6d9::t_2aada7c035b9ef 54-57
+  s_ab224f61aad6d9::t_fe4df4991d9f7b 4-5
+  s_ab224f61aad6d9::t_53fb38eedc4da0 60,62-63
+  s_ab224f61aad6d9::t_d98175e2ddd105 354,363,367-377,381-398
+  s_ab224f61aad6d9::t_3e254fec8e3e86 399-400
+entry/src/main/resources/rawfile/book_intros/005_brief.txt
+  s_ab224f61aad6d9::t_b20cc068cc4ecb 1
+entry/src/main/resources/rawfile/book_intros/019_author.txt
+  s_ab224f61aad6d9::t_8bf2c2a790241c 1
+entry/src/main/resources/rawfile/book_intros/010_content.txt
+  s_ab224f61aad6d9::t_e6555612a6e328 1
+entry/src/main/resources/rawfile/book_intros/009_author.txt
+  s_ab224f61aad6d9::t_c0096c5a42039d 1
+entry/src/main/resources/rawfile/book_intros/018_brief.txt
+  s_ab224f61aad6d9::t_6c5c06392bc32d 1
+entry/src/main/resources/rawfile/book_intros/006_brief.txt
+  s_ab224f61aad6d9::t_31b37885478dc8 1
+entry/src/main/resources/rawfile/book_intros/014_content.txt
+  s_ab224f61aad6d9::t_eb9877a17930e2 1
+entry/src/main/resources/rawfile/book_intros/008_author.txt
+  s_ab224f61aad6d9::t_dea984f338e1b1 1
+entry/src/main/resources/rawfile/book_intros/007_brief.txt
+  s_ab224f61aad6d9::t_c547b543d308d3 1
+entry/src/main/resources/rawfile/book_intros/013_brief.txt
+  s_ab224f61aad6d9::t_d6775e29aed444 1
+entry/src/main/resources/rawfile/book_intros/011_author.txt
+  s_ab224f61aad6d9::t_4f706715642472 1
+entry/src/main/resources/rawfile/book_intros/014_author.txt
+  s_ab224f61aad6d9::t_4b394dbc09ff00 1
+entry/src/main/resources/rawfile/book_intros/019_brief.txt
+  s_ab224f61aad6d9::t_b7c8f5cd9e5d05 1
+entry/src/main/resources/rawfile/book_intros/019_content.txt
+  s_ab224f61aad6d9::t_89a8c3e34d14db 1
+entry/src/main/resources/rawfile/book_intros/002_author.txt
+  s_ab224f61aad6d9::t_0e69e31366bb83 1
+entry/src/main/resources/rawfile/book_intros/010_brief.txt
+  s_ab224f61aad6d9::t_2279787d52af32 1
+entry/src/main/resources/rawfile/book_intros/003_author.txt
+  s_ab224f61aad6d9::t_f3c9ef2c2913aa 1
+entry/src/main/resources/rawfile/book_intros/020_content.txt
+  s_ab224f61aad6d9::t_92ce76e98cee04 1
+entry/src/main/resources/rawfile/book_intros/003_brief.txt
+  s_ab224f61aad6d9::t_874b2d6692ad0a 1
+entry/src/main/resources/rawfile/book_intros/002_brief.txt
+  s_ab224f61aad6d9::t_8542865c1bb720 1
+entry/src/main/resources/rawfile/book_intros/010_author.txt
+  s_ab224f61aad6d9::t_20648f37bb7c8c 1
+entry/src/main/resources/rawfile/book_intros/018_author.txt
+  s_ab224f61aad6d9::t_c94a5b5e859b87 1
+entry/src/main/resources/rawfile/book_intros/008_content.txt
+  s_ab224f61aad6d9::t_ceb4ff0b2a7779 1
+entry/src/main/resources/rawfile/book_intros/014_brief.txt
+  s_ab224f61aad6d9::t_dd12b02230b060 1
+entry/src/main/resources/rawfile/book_intros/015_brief.txt
+  s_ab224f61aad6d9::t_d63154040a9864 1
+entry/src/main/resources/rawfile/book_intros/013_author.txt
+  s_ab224f61aad6d9::t_7e8e70c544e6f3 1
+entry/src/main/resources/rawfile/book_intros/001_author.txt
+  s_ab224f61aad6d9::t_5a2ba980d04a1a 1
+entry/src/main/resources/rawfile/book_intros/021_author.txt
+  s_ab224f61aad6d9::t_6614cbcb1a1dfb 1
+entry/src/main/resources/rawfile/book_intros/001_content.txt
+  s_ab224f61aad6d9::t_c90cf4596030a7 1
+entry/src/main/resources/rawfile/book_intros/012_author.txt
+  s_ab224f61aad6d9::t_5a18b833347433 1
+entry/src/main/resources/rawfile/book_intros/013_content.txt
+  s_ab224f61aad6d9::t_51387553e8c78e 1
+entry/src/main/resources/rawfile/book_intros/021_content.txt
+  s_ab224f61aad6d9::t_278e4963a49361 1
+entry/src/main/resources/rawfile/book_intros/007_content.txt
+  s_ab224f61aad6d9::t_ea8067f94155ed 1
+entry/src/main/resources/rawfile/book_intros/017_content.txt
+  s_ab224f61aad6d9::t_8cc5a1e17a3a92 1
+entry/src/main/ets/agentextability/AgentExtAbility.ets
+  s_ab224f61aad6d9::t_c328ecbbd34ae3 14-15
+  s_ab224f61aad6d9::t_d1ee7113897af3 98
+  s_ab224f61aad6d9::t_311b1dd5ca5ca1 95
+  s_ab224f61aad6d9::t_f4106fc6e10a9e 1,8-10,16,33-35,37,40-41,44,46,49,51,62
+  s_ab224f61aad6d9::t_3b0dbcd3920151 2-4,17,36,38-39,42-43,45,47-48,50,52-53,56-57,59-61,63-74,92-93,112,114,116-117,221,254-255
+  s_ab224f61aad6d9::t_eb58802033dd1b 7,11-13,18-24,54-55,75-77,79-82,84-87,90,94,96-97,99,109,111,113,115,118-137,152,159,162,175,177-179,183-184,188,193-195,197-202,205-209,213-215,217-218,220,222-227,232-233,237,240,247-248,250-253
+  s_ab224f61aad6d9::t_042b8244cd8b95 5-6,25-32,58,88-89,91,100-108,110,139,146-147,149-151,153-156,158,160-161,163-174,176,180-182,185-187,189-192,196,203-204,210-212,216,219,228-231,234-236,238-239,241-246,249
+  s_ab224f61aad6d9::t_b80ecd30950eda 78
+  s_ab224f61aad6d9::t_de2ae4159a1a6a 83
+  s_ab224f61aad6d9::t_845fae79f0b6de 138,140-145,148,157
+entry/src/main/resources/rawfile/book_intros/004_brief.txt
+  s_ab224f61aad6d9::t_ae8f1a21770fd2 1
+entry/src/main/resources/rawfile/book_intros/007_author.txt
+  s_ab224f61aad6d9::t_dfe2e04f48331d 1
+entry/src/main/module.json5
+  h_4123ebe5b0541a 45
+  s_ab224f61aad6d9::t_d67b9d6c7fbd05 42-44,46-54
+  s_ab224f61aad6d9::t_97200e8073f724 41
+entry/src/main/resources/rawfile/book_intros/017_brief.txt
+  s_ab224f61aad6d9::t_08b7883cf87f05 1
+entry/src/main/resources/rawfile/book_intros/002_content.txt
+  s_ab224f61aad6d9::t_d7f31468413bac 1
+entry/src/main/resources/rawfile/book_intros/003_content.txt
+  s_ab224f61aad6d9::t_614acbcaf5a027 1
+entry/src/main/resources/rawfile/book_intros/008_brief.txt
+  s_ab224f61aad6d9::t_36ecb3ae888414 1
+entry/src/main/resources/rawfile/book_intros/004_content.txt
+  s_ab224f61aad6d9::t_ec7d0da9731d87 1
+entry/src/main/resources/rawfile/book_intros/011_content.txt
+  s_ab224f61aad6d9::t_5b997c4cb205f6 1
+entry/src/main/resources/rawfile/book_intros/016_brief.txt
+  s_ab224f61aad6d9::t_346b896cd3cd65 1
+entry/src/main/resources/rawfile/book_intros/017_author.txt
+  s_ab224f61aad6d9::t_c7490bacf4a035 1
+entry/src/main/resources/rawfile/book_intros/005_author.txt
+  s_ab224f61aad6d9::t_70c0f1fbe54de9 1
+entry/src/main/resources/rawfile/book_intros/009_content.txt
+  s_ab224f61aad6d9::t_abe2f385a7f89c 1
+entry/src/main/resources/rawfile/book_intros/012_content.txt
+  s_ab224f61aad6d9::t_ca2628136c9d48 1
+entry/src/main/resources/rawfile/book_intros/018_content.txt
+  s_ab224f61aad6d9::t_dbf38f20c60cda 1
+entry/src/main/resources/rawfile/book_intros/011_brief.txt
+  s_ab224f61aad6d9::t_d2796a15d3e42b 1
+entry/src/main/resources/rawfile/book_intros/005_content.txt
+  s_ab224f61aad6d9::t_edf9917282a1ca 1
+entry/src/main/resources/rawfile/book_intros/016_author.txt
+  s_ab224f61aad6d9::t_4b533d94fdca9b 1
+entry/src/main/resources/base/profile/agent_config.json
+  s_ab224f61aad6d9::t_02af5878b68c2c 45-53
+  s_ab224f61aad6d9::t_20660458b8c75c 21-23,30-31,34-36,40
+  h_4123ebe5b0541a 4-5,13-15,24-25,32-33,37-39
+  s_ab224f61aad6d9::t_bdce9d0a42612d 1-3,6-12,16-20,26-29,41-44,54-56
+entry/src/main/resources/rawfile/book_intros/001_brief.txt
+  s_ab224f61aad6d9::t_fb934ad2908c8f 1
+entry/src/main/resources/rawfile/book_intros/016_content.txt
+  s_ab224f61aad6d9::t_56ad42bb9c6f40 1
+entry/src/main/resources/rawfile/book_intros/004_author.txt
+  s_ab224f61aad6d9::t_6f6e789219584e 1
+entry/src/main/resources/rawfile/book_intros/020_brief.txt
+  s_ab224f61aad6d9::t_0355ea4c95e415 1
+entry/src/main/resources/rawfile/book_intros/021_brief.txt
+  s_ab224f61aad6d9::t_169ea10b063124 1
+entry/src/main/resources/rawfile/book_intros/009_brief.txt
+  s_ab224f61aad6d9::t_c5de24a5e82ef9 1
+entry/src/main/resources/rawfile/book_intros/020_author.txt
+  s_ab224f61aad6d9::t_ad9e41dc334484 1
+entry/src/main/resources/rawfile/book_intros/012_brief.txt
+  s_ab224f61aad6d9::t_853c1b14f59d6f 1
+entry/src/main/resources/rawfile/book_intros/015_author.txt
+  s_ab224f61aad6d9::t_4e3a5abe121c18 1
+entry/src/main/resources/rawfile/book_intros/006_author.txt
+  s_ab224f61aad6d9::t_af24c159a7e212 1
+entry/src/main/resources/rawfile/book_intros/006_content.txt
+  s_ab224f61aad6d9::t_0c68be8f3ebff6 1
+entry/src/main/resources/rawfile/book_intros/015_content.txt
+  s_ab224f61aad6d9::t_387435340046e6 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "ebd338ad3e6911c064c8f594d9943722e8a8a5ed",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_ab224f61aad6d9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fc7972f6dffeUQqDznoz5Yejc6",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 590
+    }
+  }
+}
