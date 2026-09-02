@@ -1,0 +1,58 @@
+entry/src/main/ets/pages/BookReaderPage.ets
+  s_ab224f61aad6d9::t_bbd5d1907ce781 453-461
+  s_ab224f61aad6d9::t_c0e5e22dcea4e8 156
+  s_ab224f61aad6d9::t_b45fd95b1fd3ee 163
+  s_ab224f61aad6d9::t_4bc833e2beafbf 402,452
+  s_ab224f61aad6d9::t_1509b7b359a565 462-463
+entry/src/main/resources/base/profile/agent_config.json
+  h_4123ebe5b0541a 56
+  s_0ee06fa6f6fbd8::t_f38af3a9691e75 15
+  s_0ee06fa6f6fbd8::t_8dcd87b90fc6e5 16
+  s_ab224f61aad6d9::t_fbd93420cdac02 55
+  s_0ee06fa6f6fbd8::t_e8236be8619ea1 17
+build-profile.json5
+  s_ab224f61aad6d9::t_11c2eb6ae1d4b8 8
+entry/src/main/ets/pages/BookDetailPage.ets
+  s_ab224f61aad6d9::t_5fd635a8957855 127
+  s_ab224f61aad6d9::t_9328418f33a7cb 44-54
+entry/src/main/ets/pages/BookshelfPage.ets
+  s_ab224f61aad6d9::t_b550a5519c7db1 91-92
+  s_ab224f61aad6d9::t_1cc692e326bf32 57-67,72-78
+entry/src/main/resources/rawfile/book_list.json
+  s_ab224f61aad6d9::t_09c4734ff1b2eb 9,18,36,45,54,63,72,81,90,99,108,117,126,135,144,153,162,171,180,189
+  h_4123ebe5b0541a 27
+entry/src/main/ets/pages/LibraryPage.ets
+  s_ab224f61aad6d9::t_ef5ce25cdcfcbc 44-54
+  s_ab224f61aad6d9::t_265b772e5643a3 140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "328bdae3df3b993324f55d55e1ebb5ce125abf9d",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0ee06fa6f6fbd8": {
+      "agent_id": {
+        "tool": "codegenie-deveco",
+        "id": "1788248503177",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 18
+    },
+    "s_ab224f61aad6d9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fc7972f6dffeUQqDznoz5Yejc6",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 481
+    }
+  }
+}
