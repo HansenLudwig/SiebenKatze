@@ -1,0 +1,32 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "2ef508a4f1e58a8f3b6da4cdd8847f9fdee50d1d",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0ee06fa6f6fbd8": {
+      "agent_id": {
+        "tool": "codegenie-deveco",
+        "id": "1788248503177",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 27
+    },
+    "s_ab224f61aad6d9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fc7972f6dffeUQqDznoz5Yejc6",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 481
+    }
+  }
+}
