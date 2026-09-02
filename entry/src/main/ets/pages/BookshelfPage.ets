@@ -54,10 +54,28 @@ export struct BookshelfPage {
     }
   }
 
+  private getCoverResource(cover: string): Resource {
+    switch (cover) {
+      case 'book_cover_1.png': return $r('app.media.book_cover_1');
+      case 'book_cover_2.png': return $r('app.media.book_cover_2');
+      case 'book_cover_3.png': return $r('app.media.book_cover_3');
+      case 'book_cover_4.png': return $r('app.media.book_cover_4');
+      case 'book_cover_5.png': return $r('app.media.book_cover_5');
+      default: return $r('app.media.app_icon');
+    }
+  }
+
   @Builder
   bookItem(book: Book) {
     Column() {
       Row() {
+        Image(this.getCoverResource(book.cover))
+          .width(60)
+          .height(80)
+          .borderRadius(4)
+          .objectFit(ImageFit.Cover)
+          .margin({ right: 12 })
+        Column() {
         Text(book.title)
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
@@ -70,6 +88,8 @@ export struct BookshelfPage {
         Text(`#${book.id}`)
           .fontSize(14)
           .fontColor('#999999')
+        }
+        .layoutWeight(1)
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)

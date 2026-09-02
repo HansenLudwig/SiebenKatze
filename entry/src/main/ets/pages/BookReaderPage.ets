@@ -153,13 +153,14 @@ struct BookReaderPage {
       }
     };
     this.bridge.requestToggleMenu = (): void => {
-      this.showMenu = !this.showMenu;
+      this.toggleMenu();
     };
     this.bridge.updateTotalPages = (total: number): void => {
       this._totalPages = total;
     };
 
     if (this.AGENT_ID.length > 0) {
+      this.loadBookListForAgent();
       try {
         const uiContext = getContext(this) as common.UIAbilityContext;
         this.functionController.isAgentSupport(uiContext, this.AGENT_ID).then((supported: boolean) => {
@@ -398,7 +399,7 @@ struct BookReaderPage {
     });
   }
 
-  private async buildAgentQueryText() {
+  private buildAgentQueryText() {
     const totalPages: number = this.fileFormat === 'txt' ? this.pages.length : this._totalPages;
     let progressPercent: number = 0;
     if (totalPages > 0) {
@@ -433,16 +434,6 @@ struct BookReaderPage {
     };
     AppStorage.setOrCreate<string>('agent_book_context', JSON.stringify(contextObj));
 
-    try {
-      const ctx = getContext(this).resourceManager;
-      const rawFile: Uint8Array = await ctx.getRawFileContent('book_list.json');
-      const decoder = new util.TextDecoder('utf-8');
-      const bookListJson: string = decoder.decodeToString(rawFile);
-      AppStorage.setOrCreate<string>('agent_book_list', bookListJson);
-    } catch (e) {
-      console.error('[Agent] load book list failed: ' + e);
-    }
-
     let text: string = `我正在阅读《${this.title}》（${this.fileFormat.toUpperCase()}格式），`;
     text += `当前在第${this.currentPage + 1}页，共${totalPages}页，阅读进度${progressPercent}%。`;
     if (this.fileFormat === 'txt' && this.midPageContent.length > 0) {
@@ -456,6 +447,18 @@ struct BookReaderPage {
     }
     this.agentQueryText = text;
     console.info('[Agent] queryText built, length=' + text.length);
+  }
+
+  private async loadBookListForAgent() {
+    try {
+      const ctx = getContext(this).resourceManager;
+      const rawFile: Uint8Array = await ctx.getRawFileContent('book_list.json');
+      const decoder = new util.TextDecoder('utf-8');
+      const bookListJson: string = decoder.decodeToString(rawFile);
+      AppStorage.setOrCreate<string>('agent_book_list', bookListJson);
+    } catch (e) {
+      console.error('[Agent] load book list failed: ' + e);
+    }
   }
 
   @Builder

@@ -12,7 +12,9 @@
       "capabilities": {
         "streaming": true,
         "pushNotifications": true,
-        "stateTransitionHistory": false
+        "stateTransitionHistory": true,
+        "extension": "extension",
+        "extendedAgentCard": true
       },
       "defaultInputModes": ["text/plain"],
       "defaultOutputModes": ["text/plain", "application/json"],
@@ -50,7 +52,8 @@
         "abilityName": "AgentExtAbility",
         "deviceTypes": ["phone"],
         "minAppVersion": "1.0.0"
-      }
+      },
+      "extension": "{\"protocolVersion\":\"1.0\",\"introduction\":\"欢迎使用柒喵伴读助手！我可以为您推荐书籍、总结当前阅读内容。请在阅读时随时向我提问。\"}"
     }
   ]
 }

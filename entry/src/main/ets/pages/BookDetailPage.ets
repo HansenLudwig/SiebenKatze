@@ -41,6 +41,17 @@ struct BookDetailPage {
   @State bookId: string = '';
   @State lastBookshelfVersion: number = -1;
 
+  private getCoverResource(cover: string): Resource {
+    switch (cover) {
+      case 'book_cover_1.png': return $r('app.media.book_cover_1');
+      case 'book_cover_2.png': return $r('app.media.book_cover_2');
+      case 'book_cover_3.png': return $r('app.media.book_cover_3');
+      case 'book_cover_4.png': return $r('app.media.book_cover_4');
+      case 'book_cover_5.png': return $r('app.media.book_cover_5');
+      default: return $r('app.media.app_icon');
+    }
+  }
+
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
     mainWindow.setWindowSystemBarProperties({
@@ -113,7 +124,7 @@ struct BookDetailPage {
       } else if (this.book) {
         Column() {
           Column() {
-            Image($r('app.media.app_icon'))
+            Image(this.book ? this.getCoverResource(this.book.cover) : $r('app.media.app_icon'))
               .width(120)
               .height(160)
               .borderRadius(8)
