@@ -42,7 +42,7 @@
         "name": "AgentExtAbility",
         "icon": "$media:layered_image",
         "description": "$string:module_desc",
-        "type": "partnerAgent",
+        "type": "agent",
         "exported": true,
         "srcEntry": "./ets/agentextability/AgentExtAbility.ets",
         "metadata": [

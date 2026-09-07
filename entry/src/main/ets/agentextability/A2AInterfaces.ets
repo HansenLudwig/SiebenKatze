@@ -28,19 +28,19 @@ enum RoleOfMessage {
   AGENT = 'ROLE_AGENT'
 }
 
-interface PartsInGeneral {
+interface PartInGeneral {
   mediaType: string;
 }
 
-interface PartsForData {
+interface PartForData {
   data: object
 }
 
-export interface PartsForText extends PartsInGeneral {
+export interface PartForText extends PartInGeneral {
   text: string;
 }
 
-export interface PartsForFile extends PartsInGeneral {
+export interface PartForFile extends PartInGeneral {
   url: string;
   filename: string;
 }
@@ -54,7 +54,7 @@ export interface ArtifactsOfAll {
 export interface MessageOfStatus {
   messageId: string;
   role: RoleOfMessage;
-  parts: PartsForText;
+  parts: PartForText[];
 }
 
 export interface StatusForUpdate extends StatusInGeneral{
@@ -102,7 +102,7 @@ export interface TaskForResult {
   id: string;
   contextId: string;
   status: StatusOfTask;
-  artifacts?: ArtifactsOfAll;
+  artifacts?: ArtifactsOfAll[];
 }
 
 export interface ResultWithStatusUpdate extends ResultInGeneral {
@@ -110,7 +110,7 @@ export interface ResultWithStatusUpdate extends ResultInGeneral {
 }
 
 export interface ResultWithArtifactUpdate extends ResultInGeneral {
-  artifactUpdata: ArtifactUpdateForResult
+  artifactUpdate: ArtifactUpdateForResult
 }
 
 export interface ResultWithTask extends ResultInGeneral {
@@ -122,13 +122,18 @@ export interface ResultInGeneral {
 }
 /** Params for Request from Xiaoyi */
 export interface MessageOfParams extends MessageOfStatus {
-  contextId: string;   // 单轮回答时有
+  contextId?: string;   // 单轮回答时有
   taskId?: string;
 }
 
+export interface ConfigurationOfParams {
+  returnImmediately?: boolean;
+}
+
 export interface ParamsOfRequest {
-  message: MessageOfParams
-  metadata: MetadataFromRequest
+  message: MessageOfParams;
+  metadata?: MetadataFromRequest;
+  configuration: ConfigurationOfParams;
 }
 
 /** A2A JSON */
@@ -138,9 +143,10 @@ interface A2APackage {
 }
 
 export interface A2AResponse extends A2APackage {
-  result: ArtifactUpdateForResult | TaskForResult | StatusUpdateForResult;
+  result: ResultWithArtifactUpdate | ResultWithTask | ResultWithStatusUpdate;
 }
 
 export interface A2ARequest extends A2APackage {
   params: ParamsOfRequest;
+  method?: string;
 }

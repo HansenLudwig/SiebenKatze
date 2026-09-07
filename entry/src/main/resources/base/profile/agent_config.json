@@ -2,7 +2,7 @@
   "agentCards": [
     {
       "agentId": "agent-a2a-sieben-katze",
-      "name": "柒喵伴读助手",
+      "name": "柒喵伴读2.0",
       "description": "提供书籍阅读上下文信息、当前页面内容、阅读进度查询等功能的智能阅读助手",
       "provider": {
         "organization": "SiebenKatze",
