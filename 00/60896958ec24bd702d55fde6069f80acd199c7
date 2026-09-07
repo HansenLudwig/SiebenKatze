@@ -1,0 +1,62 @@
+entry/src/main/ets/agentextability/AgentExtAbility.ets
+  s_ab224f61aad6d9::t_b79cefa0d88adb 5-8,56-65,78-84,87-92,108,125,161-172,174-175,178-183,186,190-191,194-201,203-205,210-211,215,219-223
+  s_ab224f61aad6d9::t_d3967acdcf2974 66-77,86,93-107,109-119,121,124,129-143
+  s_ab224f61aad6d9::t_598283291bba15 206-209,212,214,218
+  s_ab224f61aad6d9::t_247cbb110a3309 216-217,224,226-231,233
+  s_ab224f61aad6d9::t_9e70c1ddd98074 176
+  s_ab224f61aad6d9::t_7068d7f4ee4af4 192
+  s_0ee06fa6f6fbd8::t_541b7c7dcb9864 43
+  s_ab224f61aad6d9::t_f5aa13a444bec2 2
+  s_ab224f61aad6d9::t_daf67685208c97 48,144,146,184,187-188,236,243-247,294,301,305-306,318,321,332,348
+  s_0ee06fa6f6fbd8::t_0a8b27c4e0427e 53
+  s_ab224f61aad6d9::t_0cec3276c79aa9 1
+  s_ab224f61aad6d9::t_4ecc7a2d7ad7ee 4
+  s_ab224f61aad6d9::t_aacd7b9bba5f17 193
+  s_0ee06fa6f6fbd8::t_174c7d9ca46b05 36
+  s_ab224f61aad6d9::t_7cea8497a4f2e8 158
+  s_ab224f61aad6d9::t_9e839e7b473a80 3,9,173,177
+  s_ab224f61aad6d9::t_7cb63692d72e5e 13,15-19
+  s_ab224f61aad6d9::t_76f6a2455e1977 237-241
+  h_4123ebe5b0541a 23-25,185,213,249,253,257,259
+  s_ab224f61aad6d9::t_f6ad7cd55867d0 37,45,50,55
+  s_ab224f61aad6d9::t_01e8c258c6d972 145
+  s_ab224f61aad6d9::t_93bc0a41f76111 189
+entry/src/main/ets/agentextability/A2AInterfaces.ets
+  s_0ee06fa6f6fbd8::t_aea77680c57cd7 131
+  h_4123ebe5b0541a 105,113,130,132,134-136,146
+entry/src/main/module.json5
+  s_ab224f61aad6d9::t_be9015521aa6a5 45
+entry/src/main/resources/base/profile/agent_config.json
+  h_4123ebe5b0541a 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "0060896958ec24bd702d55fde6069f80acd199c7",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0ee06fa6f6fbd8": {
+      "agent_id": {
+        "tool": "codegenie-deveco",
+        "id": "1788248503177",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 1
+    },
+    "s_ab224f61aad6d9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fc7972f6dffeUQqDznoz5Yejc6",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 129
+    }
+  }
+}
