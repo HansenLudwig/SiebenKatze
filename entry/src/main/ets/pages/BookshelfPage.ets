@@ -1,6 +1,8 @@
 import { util } from '@kit.ArkTS';
 import { router } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
 import { UserProfileManager } from '../model/UserProfileManager';
+import { AgentDataHelper } from '../model/AgentDataHelper';
 
 interface Book {
   id: string;
@@ -20,6 +22,7 @@ class BookModel {
       const decoder = new util.TextDecoder('utf-8');
       const jsonString = decoder.decodeToString(fileData);
       const books: Book[] = JSON.parse(jsonString);
+      AgentDataHelper.writeBookList(getContext() as common.Context, jsonString);
       return books;
     } catch (error) {
       console.error('Failed to load book list:', error);

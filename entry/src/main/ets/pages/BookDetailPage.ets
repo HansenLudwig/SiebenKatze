@@ -1,6 +1,8 @@
 import { util } from '@kit.ArkTS';
 import { router, window } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
 import { UserProfileManager } from '../model/UserProfileManager';
+import { AgentDataHelper } from '../model/AgentDataHelper';
 
 interface Book {
   id: string;
@@ -24,6 +26,7 @@ class BookModel {
       const decoder = new util.TextDecoder('utf-8');
       const jsonString = decoder.decodeToString(fileData);
       const books: Book[] = JSON.parse(jsonString);
+      AgentDataHelper.writeBookList(getContext() as common.Context, jsonString);
       return books.find(book => book.id === bookId) || null;
     } catch (error) {
       console.error('Failed to load book:', error);
@@ -183,7 +186,8 @@ struct BookDetailPage {
                 params: {
                   fileName: this.book?.fileName,
                   title: this.book?.title,
-                  bookId: this.book?.id
+                  bookId: this.book?.id,
+                  author: this.book?.author
                 }
               });
             })
@@ -200,7 +204,8 @@ struct BookDetailPage {
                   params: {
                     fileName: this.book?.fileName,
                     title: this.book?.title,
-                    bookId: this.book?.id
+                    bookId: this.book?.id,
+                    author: this.book?.author
                   }
                 });
               }

@@ -7,6 +7,7 @@ import {
   ResultWithTask, ResultWithArtifactUpdate, ResultWithStatusUpdate,
   MetadataFromAgent
 } from './A2AInterfaces';
+import { AgentDataHelper } from '../model/AgentDataHelper';
 
 const TAG: string = '[AgentExt]';
 
@@ -35,6 +36,7 @@ interface BookEntry {
 
 export default class AgentExtAbility extends AgentExtensionAbility {
   private proxy: common.AgentHostProxy | null = null;
+  private traceId: string = '';
 
   onCreate(want: Want): void {
     console.info(TAG + ' onCreate, want action=' + (want.action || ''));
@@ -131,7 +133,7 @@ export default class AgentExtAbility extends AgentExtensionAbility {
     console.info(TAG + ' userText: ' + userText);
 
     const skillId: string = this.detectSkill(userText);
-    const contextJson: string = AppStorage.get<string>('agent_book_context') || '{}';
+    const contextJson: string = AgentDataHelper.readBookContext(this.context as common.Context);
     const ctx: Record<string, Object> = this.parseContext(contextJson);
 
     if (skillId === AgentSkillEnum.SKILL_RECOMMEND_BOOKS) {
@@ -248,12 +250,14 @@ export default class AgentExtAbility extends AgentExtensionAbility {
     if (query.length === 0) {
       return AgentSkillEnum.SKILL_SUMMARIZE_CONTENT;
     }
+    const wordsListForRecommendation: string[] = [];
     if (query.includes('推荐') || query.includes('书单') || query.includes('好书') ||
-      query.includes('找书') || query.includes('看什么书') || query.includes('类似的书')) {
+      query.includes('找书') || query.includes('看什么书') || query.includes('类似的')) {
       return AgentSkillEnum.SKILL_RECOMMEND_BOOKS;
     }
+    const wordsListForSummarizing: string[] = [];
     if (query.includes('总结') || query.includes('摘要') || query.includes('概括') ||
-      query.includes('讲了什么') || query.includes('什么内容') || query.includes('理解')) {
+      query.includes('讲了什么') || query.includes('什么内容') || query.includes('理解') ) {
       return AgentSkillEnum.SKILL_SUMMARIZE_CONTENT;
     }
     return AgentSkillEnum.SKILL_NULL;
@@ -286,9 +290,9 @@ export default class AgentExtAbility extends AgentExtensionAbility {
 
   private getBookList(): BookEntry[] {
     try {
-      const bookListJson: string = AppStorage.get<string>('agent_book_list') || '';
+      const bookListJson: string = AgentDataHelper.readBookList(this.context as common.Context);
       if (bookListJson.length === 0) {
-        console.warn(TAG + ' book list not in AppStorage');
+        console.warn(TAG + ' book list file not found');
         return [];
       }
       return JSON.parse(bookListJson) as BookEntry[];
@@ -306,12 +310,36 @@ export default class AgentExtAbility extends AgentExtensionAbility {
       return '暂时无法获取书库信息。';
     }
 
+    const seedIndex: number = Math.floor(Math.random() * books.length);
+    const seedBook: BookEntry = books[seedIndex];
+
+    const related: BookEntry[] = [];
+    for (let i = 0; i < books.length; i++) {
+      if (i === seedIndex) continue;
+      const book: BookEntry = books[i];
+      const hasCommonTag: boolean = book.hashtags.some((tag: string) => seedBook.hashtags.includes(tag));
+      if (hasCommonTag) {
+        related.push(book);
+      }
+    }
+
+    const relatedCount: number = Math.min(related.length, 1 + Math.floor(Math.random() * 2));
+    const pickedRelated: BookEntry[] = [];
+    for (let i = 0; i < relatedCount; i++) {
+      if (related.length === 0) break;
+      const idx: number = Math.floor(Math.random() * related.length);
+      pickedRelated.push(related[idx]);
+      related.splice(idx, 1);
+    }
+
+    const recommendations: BookEntry[] = [seedBook, ...pickedRelated];
+
     let message: string = '';
     if (currentTitle.length > 0) {
       message = `用户当前正在阅读《${currentTitle}》。`;
     }
-    message += `书库共${books.length}本书，列表如下：\n`;
-    for (const book of books) {
+    message += `为您推荐以下${recommendations.length}本书：\n`;
+    for (const book of recommendations) {
       const tags: string = book.hashtags.join('、');
       message += `\n《${book.title}》- ${book.author}（${tags}）\n${book.description}\n`;
     }
@@ -319,32 +347,46 @@ export default class AgentExtAbility extends AgentExtensionAbility {
   }
 
   private handleSummarizeContent(ctx: Record<string, Object>): string {
-    const title: string = this.getContextField(ctx, 'title', '');
-    const format: string = this.getContextField(ctx, 'format', '');
-    const currentPage: number = this.getContextNumber(ctx, 'currentPage', 0);
-    const totalPages: number = this.getContextNumber(ctx, 'totalPages', 0);
-    const progressPercent: number = this.getContextNumber(ctx, 'progressPercent', 0);
-    const currentContent: string = this.getContextField(ctx, 'currentContent', '');
-    const prevContent: string = this.getContextField(ctx, 'prevContent', '');
-    const nextContent: string = this.getContextField(ctx, 'nextContent', '');
-
-    if (title.length === 0) {
+    const lastBookJson: string = AgentDataHelper.readLastBook(this.context as common.Context);
+    if (lastBookJson.length === 0) {
       return '用户当前没有正在阅读的书籍，无法进行内容总结。';
     }
 
-    let message: string = `用户正在阅读《${title}》（${format}格式），当前在第${currentPage + 1}页，共${totalPages}页，阅读进度${progressPercent}%。`;
-    if (prevContent.length > 0) {
-      message += `\n\n上一页末尾内容：\n${prevContent}`;
+    let lastBook: Record<string, Object>;
+    try {
+      lastBook = JSON.parse(lastBookJson) as Record<string, Object>;
+    } catch (e) {
+      console.error(TAG + ' parse last book failed: ' + e);
+      return '无法读取阅读信息。';
     }
-    if (currentContent.length > 0) {
-      message += `\n\n当前页面内容：\n${currentContent}`;
+
+    const bookId: string = this.getContextField(lastBook, 'bookId', '');
+    const title: string = this.getContextField(lastBook, 'title', '');
+    const author: string = this.getContextField(lastBook, 'author', '');
+
+    if (bookId.length === 0) {
+      return '用户当前没有正在阅读的书籍，无法进行内容总结。';
     }
-    if (nextContent.length > 0) {
-      message += `\n\n下一页开头内容：\n${nextContent}`;
+
+    const introText: string = this.readBookIntro(bookId);
+    if (introText.length > 0) {
+      let message: string = `《${title}》- ${author}\n\n`;
+      message += introText;
+      return message;
     }
-    if (currentContent.length === 0 && prevContent.length === 0 && nextContent.length === 0) {
-      message += '\n\n当前页面内容为空。';
+
+    return `暂时无法提供《${title}》的内容总结。`;
+  }
+
+  private readBookIntro(bookId: string): string {
+    try {
+      const resMgr = this.context.resourceManager;
+      const rawFile: Uint8Array = resMgr.getRawFileContentSync('book_intros/' + bookId + '_content.txt');
+      const decoder = new util.TextDecoder('utf-8');
+      return decoder.decodeToString(rawFile);
+    } catch (e) {
+      console.error(TAG + ' readBookIntro failed for id=' + bookId + ': ' + e);
+      return '';
     }
-    return message;
   }
 }

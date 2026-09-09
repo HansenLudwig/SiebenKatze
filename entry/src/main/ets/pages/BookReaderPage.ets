@@ -1,15 +1,17 @@
 import { util } from '@kit.ArkTS';
 import { router, window } from '@kit.ArkUI';
 import { webview } from '@kit.ArkWeb';
-import { common } from '@kit.AbilityKit';
+import { common, Want } from '@kit.AbilityKit';
 import { FunctionComponent, FunctionController, ButtonType } from '@kit.AgentFrameworkKit';
 import { UserProfileManager } from '../model/UserProfileManager';
 import { EpubParser } from '../model/EpubParser';
+import { AgentDataHelper } from '../model/AgentDataHelper';
 
 interface ReaderParams {
   fileName: string;
   title: string;
   bookId: string;
+  author: string;
 }
 
 class ReaderBridge {
@@ -33,6 +35,7 @@ struct BookReaderPage {
   @State currentPage: number = 0;
   @State pages: string[] = [];
   @State bookId: string = '';
+  private author: string = '';
   @State isInBookshelf: boolean = false;
   @State scrollOffset: number = 0;
   @State displayWidth: number = 0;
@@ -56,9 +59,9 @@ struct BookReaderPage {
   @State midPageContent: string = '';
   @State rightPageContent: string = '';
   @State showProgressToast: boolean = false;
-  @State agentQueryText: string = '';
+  @State agentQueryText: string = '你好';
 
-  private readonly AGENT_ID: string = 'agent-a2a-sieben-katze';
+  private readonly AGENT_ID: string = 'agentf0c9eddc463447e290513ec174eb57cd'; // 'agentf0c9eddc463447e290513ec174eb57cd'; // 'agent-a2a-sieben-katze';
   private functionController: FunctionController = new FunctionController();
   private agentSupported: boolean = false;
 
@@ -72,6 +75,7 @@ struct BookReaderPage {
     const params = router.getParams() as ReaderParams;
     this.title = params.title || '阅读';
     this.bookId = params.bookId || '';
+    this.author = params.author || '';
 
     const ext: string = params.fileName.split('.').pop()?.toLowerCase() || 'txt';
     if (ext === 'epub') {
@@ -113,6 +117,8 @@ struct BookReaderPage {
       }
       this.isLoading = false;
     }
+
+    this.writeLastBookData();
 
     this.bridge.updateScroll = (offset: number): void => {
       this.scrollOffset = offset;
@@ -297,6 +303,30 @@ struct BookReaderPage {
       }
     }
     this.profileManager.saveReadingProgress(this.bookId, this.currentPage, this.scrollOffset, progressPercent);
+    this.writeLastBookData();
+  }
+
+  private writeLastBookData(): void {
+    const totalPages: number = this.fileFormat === 'txt' ? this.pages.length : this._totalPages;
+    let progressPercent: number = 0;
+    if (totalPages > 0) {
+      if (this.fileFormat === 'txt' && this.pages.length > 0) {
+        progressPercent = Math.min(Math.round(this.currentPage / totalPages * 100), 100);
+      } else if (this._totalPages > 0 && this.displayHeight > 0) {
+        const page: number = Math.floor(this.scrollOffset / this.displayHeight);
+        progressPercent = Math.min(Math.round(page / this._totalPages * 100), 100);
+      }
+    }
+    const lastBookObj: Record<string, Object> = {
+      'bookId': this.bookId,
+      'title': this.title,
+      'author': this.author,
+      'format': this.fileFormat.toUpperCase(),
+      'currentPage': this.currentPage,
+      'totalPages': totalPages,
+      'progressPercent': progressPercent
+    };
+    AgentDataHelper.writeLastBook(getContext(this) as common.Context, JSON.stringify(lastBookObj));
   }
 
   onPageHide() {
@@ -432,7 +462,7 @@ struct BookReaderPage {
       'prevContent': prevSnippet,
       'nextContent': nextSnippet,
     };
-    AppStorage.setOrCreate<string>('agent_book_context', JSON.stringify(contextObj));
+    AgentDataHelper.writeBookContext(getContext(this) as common.Context, JSON.stringify(contextObj));
 
     let text: string = `我正在阅读《${this.title}》（${this.fileFormat.toUpperCase()}格式），`;
     text += `当前在第${this.currentPage + 1}页，共${totalPages}页，阅读进度${progressPercent}%。`;
@@ -456,6 +486,7 @@ struct BookReaderPage {
       const decoder = new util.TextDecoder('utf-8');
       const bookListJson: string = decoder.decodeToString(rawFile);
       AppStorage.setOrCreate<string>('agent_book_list', bookListJson);
+      AgentDataHelper.writeBookList(getContext(this) as common.Context, bookListJson);
     } catch (e) {
       console.error('[Agent] load book list failed: ' + e);
     }
