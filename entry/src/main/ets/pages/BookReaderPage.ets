@@ -6,6 +6,7 @@ import { FunctionComponent, FunctionController, ButtonType } from '@kit.AgentFra
 import { UserProfileManager } from '../model/UserProfileManager';
 import { EpubParser } from '../model/EpubParser';
 import { AgentDataHelper } from '../model/AgentDataHelper';
+import { AgentButton } from '../components/AgentButton';
 
 interface ReaderParams {
   fileName: string;
@@ -60,10 +61,6 @@ struct BookReaderPage {
   @State rightPageContent: string = '';
   @State showProgressToast: boolean = false;
   @State agentQueryText: string = '你好';
-
-  private readonly AGENT_ID: string = 'agentf0c9eddc463447e290513ec174eb57cd'; // 'agentf0c9eddc463447e290513ec174eb57cd'; // 'agent-a2a-sieben-katze';
-  private functionController: FunctionController = new FunctionController();
-  private agentSupported: boolean = false;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -165,29 +162,7 @@ struct BookReaderPage {
       this._totalPages = total;
     };
 
-    if (this.AGENT_ID.length > 0) {
-      this.loadBookListForAgent();
-      try {
-        const uiContext = getContext(this) as common.UIAbilityContext;
-        this.functionController.isAgentSupport(uiContext, this.AGENT_ID).then((supported: boolean) => {
-          this.agentSupported = supported;
-          console.info('[Agent] isAgentSupport result: ' + supported);
-        }).catch((err: BusinessError) => {
-          this.agentSupported = false;
-          console.error('[Agent] isAgentSupport failed: code=' + err.code + ' msg=' + err.message);
-        });
-      } catch (e) {
-        this.agentSupported = false;
-        console.error('[Agent] isAgentSupport exception: ' + e);
-      }
-      this.functionController.on('agentDialogOpened', () => {
-        console.info('[Agent] dialog opened');
-      });
-      this.functionController.on('agentDialogClosed', () => {
-        console.info('[Agent] dialog closed');
-        this.showMenu = false;
-      });
-    }
+    this.loadBookListForAgent();
   }
 
   private sendContentToViewer() {
@@ -304,6 +279,24 @@ struct BookReaderPage {
     }
     this.profileManager.saveReadingProgress(this.bookId, this.currentPage, this.scrollOffset, progressPercent);
     this.writeLastBookData();
+    this.writeReadingHistoryData();
+  }
+
+  private writeReadingHistoryData(): void {
+    if (!this.profileManager) return;
+    const historyIds: string[] = this.profileManager.getReadingHistoryBookIds();
+    const historyObj: Record<string, Object> = {};
+    for (const id of historyIds) {
+      const entry = this.profileManager.getReadingProgress(id);
+      if (entry) {
+        const entryObj: Record<string, Object> = {
+          'bookId': entry.bookId,
+          'progressPercent': entry.progressPercent
+        };
+        historyObj[id] = entryObj as Object;
+      }
+    }
+    AgentDataHelper.writeReadingHistory(getContext(this) as common.Context, JSON.stringify(historyObj));
   }
 
   private writeLastBookData(): void {
@@ -514,24 +507,14 @@ struct BookReaderPage {
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-      FunctionComponent({
-        agentId: this.AGENT_ID,
-        onError: (err: BusinessError) => {
-          console.error('[Agent] FunctionComponent error: code=' + err.code + ' msg=' + err.message);
-        },
-        options: {
-          title: '',
-          buttonType: ButtonType.CIRCLE,
-          isShowShadow: false,
-          backgroundColor: '#00000000',
-          iconColors: ['#FFFFFF'],
-          titleColors: ['#FFFFFF'],
-          queryText: this.agentQueryText,
-        },
-        controller: this.functionController
+      AgentButton({
+        queryText: this.agentQueryText,
+        iconColor: '#FFFFFF',
+        buttonSize: 36,
+        onDialogClosed: (): void => {
+          this.showMenu = false;
+        }
       })
-        .width(36)
-        .height(36)
 
       Button(this.isInBookshelf ? '已加入书架' : '加入书架')
         .fontSize(14)

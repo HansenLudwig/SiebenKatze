@@ -3,6 +3,7 @@ import { router } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
 import { UserProfileManager } from '../model/UserProfileManager';
 import { AgentDataHelper } from '../model/AgentDataHelper';
+import { AgentButton } from '../components/AgentButton';
 
 interface Book {
   id: string;
@@ -35,6 +36,7 @@ class BookModel {
 export struct LibraryPage {
   @State allBooks: Book[] = [];
   @State searchText: string = '';
+  @State agentQueryText: string = '用户正在浏览书城。';
   @State isLoading: boolean = true;
   @State currentTab: number = 1;
   @State currentSubTab: number = 0;
@@ -222,10 +224,17 @@ export struct LibraryPage {
           .placeholderFont({ size: 14 })
           .fontSize(14)
           .fontColor('#333333')
-          .margin({ left: 8, right: 12 })
+          .margin({ left: 8, right: 8 })
           .onChange((value: string) => {
             this.searchText = value;
           })
+
+        AgentButton({
+          queryText: this.agentQueryText,
+          iconColor: '#333333',
+          buttonSize: 32
+        })
+          .margin({ right: 8 })
       }
       .width('95%')
       .height(48)

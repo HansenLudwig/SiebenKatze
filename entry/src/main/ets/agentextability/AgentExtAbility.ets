@@ -250,14 +250,12 @@ export default class AgentExtAbility extends AgentExtensionAbility {
     if (query.length === 0) {
       return AgentSkillEnum.SKILL_SUMMARIZE_CONTENT;
     }
-    const wordsListForRecommendation: string[] = [];
-    if (query.includes('推荐') || query.includes('书单') || query.includes('好书') ||
-      query.includes('找书') || query.includes('看什么书') || query.includes('类似的')) {
+    const wordsListForRecommendation: string[] = ['推荐', '书单', '好书', '找', '看什么书', '类似', '相似', '同类'];
+    if (wordsListForRecommendation.some((word: string) => query.includes(word))) {
       return AgentSkillEnum.SKILL_RECOMMEND_BOOKS;
     }
-    const wordsListForSummarizing: string[] = [];
-    if (query.includes('总结') || query.includes('摘要') || query.includes('概括') ||
-      query.includes('讲了什么') || query.includes('什么内容') || query.includes('理解') ) {
+    const wordsListForSummarizing: string[] = ['总结', '摘要', '概括', '讲了什么', '内容', '理解', '本书', '章节'];
+    if (wordsListForSummarizing.some((word: string) => query.includes(word))) {
       return AgentSkillEnum.SKILL_SUMMARIZE_CONTENT;
     }
     return AgentSkillEnum.SKILL_NULL;
@@ -310,29 +308,29 @@ export default class AgentExtAbility extends AgentExtensionAbility {
       return '暂时无法获取书库信息。';
     }
 
-    const seedIndex: number = Math.floor(Math.random() * books.length);
-    const seedBook: BookEntry = books[seedIndex];
-
-    const related: BookEntry[] = [];
-    for (let i = 0; i < books.length; i++) {
-      if (i === seedIndex) continue;
-      const book: BookEntry = books[i];
-      const hasCommonTag: boolean = book.hashtags.some((tag: string) => seedBook.hashtags.includes(tag));
-      if (hasCommonTag) {
-        related.push(book);
+    const lastBookJson: string = AgentDataHelper.readLastBook(this.context as common.Context);
+    let currentBookId: string = '';
+    if (lastBookJson.length > 0) {
+      try {
+        const lastBook: Record<string, Object> = JSON.parse(lastBookJson) as Record<string, Object>;
+        currentBookId = this.getContextField(lastBook, 'bookId', '');
+      } catch (e) {
+        console.error(TAG + ' parse last book failed: ' + e);
       }
     }
 
-    const relatedCount: number = Math.min(related.length, 1 + Math.floor(Math.random() * 2));
-    const pickedRelated: BookEntry[] = [];
-    for (let i = 0; i < relatedCount; i++) {
-      if (related.length === 0) break;
-      const idx: number = Math.floor(Math.random() * related.length);
-      pickedRelated.push(related[idx]);
-      related.splice(idx, 1);
+    let recommendations: BookEntry[] = [];
+
+    if (currentBookId.length > 0) {
+      const currentBook: BookEntry | undefined = books.find((b: BookEntry) => b.id === currentBookId);
+      if (currentBook) {
+        recommendations = this.recommendByHashtag(books, currentBook);
+      }
     }
 
-    const recommendations: BookEntry[] = [seedBook, ...pickedRelated];
+    if (recommendations.length === 0) {
+      recommendations = this.recommendRandomly(books, currentBookId);
+    }
 
     let message: string = '';
     if (currentTitle.length > 0) {
@@ -344,6 +342,98 @@ export default class AgentExtAbility extends AgentExtensionAbility {
       message += `\n《${book.title}》- ${book.author}（${tags}）\n${book.description}\n`;
     }
     return message;
+  }
+
+  private recommendByHashtag(books: BookEntry[], currentBook: BookEntry): BookEntry[] {
+    const related: BookEntry[] = [];
+    for (const book of books) {
+      if (book.id === currentBook.id) continue;
+      const hasCommonTag: boolean = book.hashtags.some((tag: string) => currentBook.hashtags.includes(tag));
+      if (hasCommonTag) {
+        related.push(book);
+      }
+      if (related.length >= 100) break;
+    }
+
+    if (related.length === 0) {
+      return [];
+    }
+
+    const historyJson: string = AgentDataHelper.readReadingHistory(this.context as common.Context);
+    let history: Record<string, Object> = {};
+    if (historyJson.length > 0) {
+      try {
+        history = JSON.parse(historyJson) as Record<string, Object>;
+      } catch (e) {
+        console.error(TAG + ' parse history failed: ' + e);
+      }
+    }
+
+    const filtered: BookEntry[] = [];
+    for (const book of related) {
+      const entry: Object | undefined = history[book.id];
+      let progress: number = 0;
+      if (entry) {
+        try {
+          const entryObj: Record<string, Object> = entry as Record<string, Object>;
+          const val: Object | undefined = entryObj['progressPercent'];
+          if (val !== undefined && typeof val === 'number') {
+            progress = val as number;
+          }
+        } catch (e) {
+          // ignore, treat as 0%
+        }
+      }
+      if (progress <= 10) {
+        filtered.push(book);
+      }
+    }
+
+    const pool: BookEntry[] = filtered.length > 0 ? filtered : related;
+    const count: number = Math.min(pool.length, 1 + Math.floor(Math.random() * 2));
+    const picked: BookEntry[] = [];
+    for (let i = 0; i < count; i++) {
+      if (pool.length === 0) break;
+      const idx: number = Math.floor(Math.random() * pool.length);
+      picked.push(pool[idx]);
+      pool.splice(idx, 1);
+    }
+    return picked;
+  }
+
+  private recommendRandomly(books: BookEntry[], excludeBookId: string = ''): BookEntry[] {
+    const available: BookEntry[] = [];
+    for (const book of books) {
+      if (book.id === excludeBookId) continue;
+      available.push(book);
+    }
+
+    if (available.length === 0) {
+      return books.length > 0 ? [books[0]] : [];
+    }
+
+    const seedIndex: number = Math.floor(Math.random() * available.length);
+    const seedBook: BookEntry = available[seedIndex];
+
+    const related: BookEntry[] = [];
+    for (let i = 0; i < available.length; i++) {
+      if (i === seedIndex) continue;
+      const book: BookEntry = available[i];
+      const hasCommonTag: boolean = book.hashtags.some((tag: string) => seedBook.hashtags.includes(tag));
+      if (hasCommonTag) {
+        related.push(book);
+      }
+    }
+
+    const count: number = Math.min(related.length, 1 + Math.floor(Math.random() * 2));
+    const picked: BookEntry[] = [seedBook];
+    for (let i = 0; i < count; i++) {
+      if (related.length === 0) break;
+      const idx: number = Math.floor(Math.random() * related.length);
+      picked.push(related[idx]);
+      related.splice(idx, 1);
+    }
+    return picked;
   }
 
   private handleSummarizeContent(ctx: Record<string, Object>): string {
