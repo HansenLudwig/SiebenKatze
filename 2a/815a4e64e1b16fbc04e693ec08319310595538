@@ -1,0 +1,77 @@
+entry/src/main/ets/pages/BookshelfPage.ets
+  s_babcd85cbf7789::t_c833ae14a579b7 76
+  s_babcd85cbf7789::t_1d9cf5a1e55b1b 73-75,77-80,84-87,92,94-95,97-98,100-110,113-119,121-122,125,187
+entry/src/main/resources/rawfile/pdf_viewer.html
+  s_babcd85cbf7789::t_d201ee49cdf1e7 105,122-212,215-259,261-264
+  s_babcd85cbf7789::t_65b9a54b5f7474 260,265
+  s_babcd85cbf7789::t_ecb76a307bf4a8 44-51
+  s_babcd85cbf7789::t_7596c82b503c3c 21-31
+  s_babcd85cbf7789::t_32c8da6286d568 266
+entry/src/main/resources/rawfile/epub_viewer.html
+  s_babcd85cbf7789::t_a0cc410e7f27de 55-62
+  s_babcd85cbf7789::t_a90e2aaa7f4c5b 609-612
+  s_babcd85cbf7789::t_d5e404863d69bf 158,185
+  s_babcd85cbf7789::t_961d9695f8d51d 376,381,387-395
+  s_babcd85cbf7789::t_34794b6323ccdf 406,412-414
+  s_babcd85cbf7789::t_7ae13d3c8fab9f 148-157,159-184,186-199,201-226,228-257,259-281,283-291,293-298
+  s_babcd85cbf7789::t_9f7c3c4ab6d8d8 404-405,407-411,415-416
+  s_babcd85cbf7789::t_7c46cd27f79a97 258,282,292
+  s_babcd85cbf7789::t_7638243817758a 588
+  s_babcd85cbf7789::t_7d589ca9fdc16b 23-35
+  s_babcd85cbf7789::t_32a8bf7392153e 200,227
+  s_babcd85cbf7789::t_56080c0b877d6e 438-465,467-579,581-586
+  s_babcd85cbf7789::t_ca0bd1ba2bb01d 580,587
+  s_babcd85cbf7789::t_a3ccb59a60f754 608
+  s_babcd85cbf7789::t_179a68c585387b 466
+entry/src/main/ets/pages/BookReaderPage.ets
+  s_babcd85cbf7789::t_7349c457e4ba5b 635-637
+  s_babcd85cbf7789::t_b37cd4f8acfdde 1011-1014
+  s_babcd85cbf7789::t_3dc02b201f270b 72-74
+  s_babcd85cbf7789::t_994dff81dfc33a 176-184
+  s_babcd85cbf7789::t_038be866119873 109
+  s_babcd85cbf7789::t_00341f71b5d1de 938
+  s_babcd85cbf7789::t_1cb2f7f86ec03d 673-768
+  s_babcd85cbf7789::t_3ead5110cd9051 18-24,32
+  s_babcd85cbf7789::t_771f3c0535a0de 366-384
+  s_babcd85cbf7789::t_ade4a00a7a069b 672
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "3.31.1604",
+  "base_commit_sha": "2a815a4e64e1b16fbc04e693ec08319310595538",
+  "prompts": {},
+  "humans": {
+    "h_4123ebe5b0541a": {
+      "author": "l30081662 <lvhansen@h-partners.com>"
+    }
+  },
+  "sessions": {
+    "s_0ee06fa6f6fbd8": {
+      "agent_id": {
+        "tool": "codegenie-deveco",
+        "id": "1788248503177",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 1
+    },
+    "s_ab224f61aad6d9": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fc7972f6dffeUQqDznoz5Yejc6",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 264
+    },
+    "s_babcd85cbf7789": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f70756bbfffePNGuMnIGDZwSLA",
+        "model": "glm-5.2"
+      },
+      "human_author": "l30081662 <lvhansen@h-partners.com>",
+      "total_deletions": 73
+    }
+  }
+}
