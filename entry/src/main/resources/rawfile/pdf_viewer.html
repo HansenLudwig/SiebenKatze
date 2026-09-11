@@ -18,6 +18,17 @@ body { background: #FFF9F0; overflow-y: auto; -webkit-overflow-scrolling: touch;
 #error { text-align: center; padding: 60px 20px; color: #c00; font-size: 16px; display: none; }
 #error p { margin: 8px 0; }
 #error .hint { color: #999; font-size: 13px; }
+#toc-panel { position: fixed; top: 0; left: 0; width: 75%; height: 100%; background: #FFFFFF; z-index: 100; overflow-y: auto; transform: translateX(-100%); transition: transform 0.25s ease; box-shadow: 2px 0 8px rgba(0,0,0,0.15); }
+#toc-panel.open { transform: translateX(0); }
+#toc-panel .toc-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E5E5E5; background: #FFF9F0; position: sticky; top: 0; z-index: 1; }
+#toc-panel .toc-header h2 { font-size: 18px; color: #333; margin: 0; }
+#toc-panel .toc-close { font-size: 24px; color: #999; cursor: pointer; border: none; background: none; }
+#toc-panel .toc-list { padding: 8px 0; }
+#toc-panel .toc-item { display: block; padding: 12px 20px; font-size: 14px; color: #333; text-decoration: none; border-bottom: 1px solid #F5F5F5; }
+#toc-panel .toc-item:hover, #toc-panel .toc-item:active { background: #FFF3E0; }
+#toc-panel .toc-empty { padding: 40px 20px; text-align: center; color: #999; font-size: 14px; }
+#toc-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 99; display: none; }
+#toc-overlay.show { display: block; }
 </style>
 </head>
 <body>
@@ -30,6 +41,14 @@ body { background: #FFF9F0; overflow-y: auto; -webkit-overflow-scrolling: touch;
   <p class="hint">请检查网络连接后重试</p>
 </div>
 <div id="pages"></div>
+<div id="toc-overlay"></div>
+<div id="toc-panel">
+  <div class="toc-header">
+    <h2>目录</h2>
+    <button class="toc-close" id="toc-close-btn">&times;</button>
+  </div>
+  <div class="toc-list" id="toc-list"></div>
+</div>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -83,6 +102,7 @@ async function renderPdfPages(pdf) {
 
     var div = document.createElement('div');
     div.className = 'page';
+    div.setAttribute('data-page-num', i.toString());
 
     var canvas = document.createElement('canvas');
     canvas.width = viewport.width;
@@ -99,7 +119,150 @@ async function renderPdfPages(pdf) {
     window.readerBridge.updateTotalPages(totalPages);
     window.readerBridge.onPdfRendered(totalPages);
   }
+
+  try {
+    var tocData = await parsePdfOutline(pdf);
+    if (window.readerBridge) {
+      window.readerBridge.updateToc(JSON.stringify(tocData));
+    }
+    renderTocPanel(tocData);
+  } catch (e) {
+    console.warn('PDF outline parse error:', e);
+    if (window.readerBridge) {
+      window.readerBridge.updateToc('[]');
+    }
+  }
 }
+
+async function parsePdfOutline(pdf) {
+  var items = [];
+  try {
+    var outline = await pdf.getOutline();
+    if (!outline || outline.length === 0) return items;
+
+    async function processItems(outlineItems, level) {
+      for (var i = 0; i < outlineItems.length; i++) {
+        var item = outlineItems[i];
+        var pageNum = 0;
+
+        if (item.dest) {
+          var dest = null;
+          if (typeof item.dest === 'string') {
+            dest = await pdf.getDestination(item.dest);
+          } else if (Array.isArray(item.dest)) {
+            dest = item.dest;
+          }
+
+          if (dest && dest[0]) {
+            try {
+              var pageIndex = await pdf.getPageIndex(dest[0]);
+              pageNum = pageIndex + 1;
+            } catch (e) {
+              console.warn('Failed to get page index:', e);
+            }
+          }
+        }
+
+        items.push({
+          title: item.title || '',
+          href: '',
+          page: pageNum,
+          level: level
+        });
+
+        if (item.items && item.items.length > 0) {
+          await processItems(item.items, level + 1);
+        }
+      }
+    }
+
+    await processItems(outline, 0);
+  } catch (e) {
+    console.warn('Failed to parse PDF outline:', e);
+  }
+  return items;
+}
+
+function renderTocPanel(tocData) {
+  var listEl = document.getElementById('toc-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  if (!tocData || tocData.length === 0) {
+    var empty = document.createElement('div');
+    empty.className = 'toc-empty';
+    empty.textContent = '当前书籍没有章节划分';
+    listEl.appendChild(empty);
+    return;
+  }
+
+  for (var i = 0; i < tocData.length; i++) {
+    var item = document.createElement('a');
+    item.className = 'toc-item';
+    item.textContent = tocData[i].title;
+    item.style.paddingLeft = (20 + tocData[i].level * 16) + 'px';
+    (function(pg) {
+      item.onclick = function(ev) {
+        ev.preventDefault();
+        closeTocPanel();
+        window.goToPage(pg);
+      };
+    })(tocData[i].page);
+    listEl.appendChild(item);
+  }
+}
+
+function openTocPanel() {
+  var panel = document.getElementById('toc-panel');
+  var overlay = document.getElementById('toc-overlay');
+  if (panel) panel.classList.add('open');
+  if (overlay) overlay.classList.add('show');
+}
+
+function closeTocPanel() {
+  var panel = document.getElementById('toc-panel');
+  var overlay = document.getElementById('toc-overlay');
+  if (panel) panel.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
+}
+
+window.goToPage = function(pageNum) {
+  if (!pageNum || pageNum < 1) return;
+  var pageIndex = pageNum - 1;
+
+  if (__pageMode) {
+    __currentPage = Math.max(0, Math.min(pageIndex, totalPages - 1));
+    var pagesContainer = document.getElementById('pages');
+    if (pagesContainer) {
+      pagesContainer.style.transition = 'transform 0.3s ease-in-out';
+      pagesContainer.style.transform = 'translateX(' + (-__currentPage * window.innerWidth) + 'px)';
+    }
+  } else {
+    var pages = document.querySelectorAll('.page');
+    if (pages[pageIndex]) {
+      pages[pageIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  if (window.readerBridge) {
+    window.readerBridge.updateScroll(pageIndex * window.innerHeight);
+  }
+};
+
+window.openToc = function() {
+  openTocPanel();
+};
+
+window.closeToc = function() {
+  closeTocPanel();
+};
+
+(function() {
+  var closeBtn = document.getElementById('toc-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', closeTocPanel);
+  var overlay = document.getElementById('toc-overlay');
+  if (overlay) overlay.addEventListener('click', closeTocPanel);
+})();
 
 window.addEventListener('scroll', function() {
   currentScrollY = window.scrollY;

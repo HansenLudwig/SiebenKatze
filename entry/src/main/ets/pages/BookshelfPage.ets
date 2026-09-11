@@ -70,59 +70,59 @@ export struct BookshelfPage {
 
   @Builder
   bookItem(book: Book) {
-    Column() {
-      Row() {
-        Image(this.getCoverResource(book.cover))
-          .width(60)
-          .height(80)
-          .borderRadius(4)
-          .objectFit(ImageFit.Cover)
-          .margin({ right: 12 })
-        Column() {
+    Row() {
+      Image(this.getCoverResource(book.cover))
+        .width(70)
+        .aspectRatio(0.75)
+        .borderRadius(4)
+        .objectFit(ImageFit.Cover)
+        .margin({ right: 12 })
+      Column() {
         Text(book.title)
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
-          .layoutWeight(1)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .width('100%')
+
         if (this.profileManager && this.profileManager.getProgressPercent(book.id) > 0) {
           Text(`已读${this.profileManager.getProgressPercent(book.id)}%`)
             .fontSize(12)
             .fontColor('#FF8C00')
+            .margin({ top: 4 })
         }
-        Text(`#${book.id}`)
+
+        Text(`作者: ${book.author}`)
           .fontSize(14)
-          .fontColor('#999999')
+          .fontColor('#666666')
+          .margin({ top: 4 })
+
+        Row() {
+          ForEach(book.hashtags, (tag: string) => {
+            Text(`#${tag}`)
+              .fontSize(12)
+              .fontColor('#FF8C00')
+              .backgroundColor('#FFF3E0')
+              .padding({ left: 8, right: 8, top: 2, bottom: 2 })
+              .borderRadius(4)
+              .margin({ right: 8 })
+          })
         }
-        .layoutWeight(1)
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Center)
-
-      Text(`作者: ${book.author}`)
-        .fontSize(14)
-        .fontColor('#666666')
         .margin({ top: 8 })
 
-      Row() {
-        ForEach(book.hashtags, (tag: string) => {
-          Text(`#${tag}`)
-            .fontSize(12)
-            .fontColor('#FF8C00')
-            .backgroundColor('#FFF3E0')
-            .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-            .borderRadius(4)
-            .margin({ right: 8 })
-        })
+        Text(book.description)
+          .fontSize(13)
+          .fontColor('#888888')
+          .margin({ top: 8 })
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .width('100%')
       }
-      .margin({ top: 8 })
-
-      Text(book.description)
-        .fontSize(13)
-        .fontColor('#888888')
-        .margin({ top: 8 })
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
+    .alignItems(VerticalAlign.Top)
     .padding(16)
     .backgroundColor('#FFFFFF')
     .borderRadius(8)

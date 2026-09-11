@@ -20,7 +20,19 @@ body { background: #FFF9F0; overflow-y: auto; -webkit-overflow-scrolling: touch;
 #content p { text-indent: 2em; margin: 0.5em 0; }
 #content img { max-width: 100%; height: auto; display: block; margin: 0.5em auto; break-inside: avoid; }
 #content h1, #content h2, #content h3, #content h4, #content h5, #content h6 { margin: 1em 0 0.5em; line-height: 1.3; break-inside: avoid; break-after: avoid; }
-#content a { color: #FF8C00; text-decoration: none; }
+#content a { color: #FF8C00; text-decoration: none; cursor: pointer; }
+#content .epub-chapter { position: relative; }
+#toc-panel { position: fixed; top: 0; left: 0; width: 75%; height: 100%; background: #FFFFFF; z-index: 100; overflow-y: auto; transform: translateX(-100%); transition: transform 0.25s ease; box-shadow: 2px 0 8px rgba(0,0,0,0.15); }
+#toc-panel.open { transform: translateX(0); }
+#toc-panel .toc-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #E5E5E5; background: #FFF9F0; }
+#toc-panel .toc-header h2 { font-size: 18px; color: #333; margin: 0; }
+#toc-panel .toc-close { font-size: 24px; color: #999; cursor: pointer; border: none; background: none; }
+#toc-panel .toc-list { padding: 8px 0; }
+#toc-panel .toc-item { display: block; padding: 12px 20px; font-size: 14px; color: #333; text-decoration: none; border-bottom: 1px solid #F5F5F5; }
+#toc-panel .toc-item:hover, #toc-panel .toc-item:active { background: #FFF3E0; }
+#toc-panel .toc-empty { padding: 40px 20px; text-align: center; color: #999; font-size: 14px; }
+#toc-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 99; display: none; }
+#toc-overlay.show { display: block; }
 #content table { max-width: 100%; overflow-x: auto; }
 #loading { text-align: center; padding: 60px 20px; color: #666; font-size: 16px; }
 #loading .spinner { width: 36px; height: 36px; margin: 0 auto 16px; border: 3px solid #eee; border-top-color: #FF8C00; border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -40,6 +52,14 @@ body { background: #FFF9F0; overflow-y: auto; -webkit-overflow-scrolling: touch;
 </div>
 <style id="epub-css"></style>
 <div id="content"></div>
+<div id="toc-overlay"></div>
+<div id="toc-panel">
+  <div class="toc-header">
+    <h2>目录</h2>
+    <button class="toc-close" id="toc-close-btn">&times;</button>
+  </div>
+  <div class="toc-list" id="toc-list"></div>
+</div>
 <script>
 function hideLoading() {
   document.getElementById('loading').style.display = 'none';
@@ -125,6 +145,157 @@ function waitForImages() {
   });
 }
 
+function getDirectChild(element, tagName) {
+  for (var i = 0; i < element.childNodes.length; i++) {
+    var child = element.childNodes[i];
+    if (child.nodeType === 1 && child.tagName.toLowerCase() === tagName.toLowerCase()) {
+      return child;
+    }
+  }
+  return null;
+}
+
+function parseNcxToc(ncxContent, ncxPath) {
+  var items = [];
+  try {
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(ncxContent, 'text/xml');
+    var navMap = doc.getElementsByTagName('navMap')[0];
+    if (!navMap) return items;
+
+    function processNavPoints(parent, level) {
+      for (var i = 0; i < parent.childNodes.length; i++) {
+        var child = parent.childNodes[i];
+        if (child.nodeType !== 1 || child.tagName.toLowerCase() !== 'navpoint') continue;
+
+        var label = '';
+        var navLabel = getDirectChild(child, 'navLabel');
+        if (navLabel) {
+          var textEl = getDirectChild(navLabel, 'text');
+          if (textEl) label = textEl.textContent.trim();
+        }
+
+        var src = '';
+        var contentEl = getDirectChild(child, 'content');
+        if (contentEl) src = contentEl.getAttribute('src') || '';
+
+        if (label && src) {
+          items.push({
+            title: label,
+            href: ncxPath ? resolvePath(ncxPath, src) : src,
+            page: 0,
+            level: level
+          });
+        }
+        processNavPoints(child, level + 1);
+      }
+    }
+    processNavPoints(navMap, 0);
+  } catch (e) {
+    console.warn('NCX parse error:', e);
+  }
+  return items;
+}
+
+function parseNavToc(navContent, navPath) {
+  var items = [];
+  try {
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(navContent, 'text/html');
+
+    var navs = doc.getElementsByTagName('nav');
+    var tocNav = null;
+    for (var i = 0; i < navs.length; i++) {
+      var epubType = navs[i].getAttribute('epub:type') || '';
+      if (epubType.indexOf('toc') >= 0) { tocNav = navs[i]; break; }
+    }
+    if (!tocNav && navs.length > 0) tocNav = navs[0];
+    if (!tocNav) return items;
+
+    function processList(list, level) {
+      for (var i = 0; i < list.childNodes.length; i++) {
+        var li = list.childNodes[i];
+        if (li.nodeType !== 1 || li.tagName.toLowerCase() !== 'li') continue;
+
+        var link = getDirectChild(li, 'a');
+        if (link) {
+          var title = link.textContent.trim();
+          var href = link.getAttribute('href') || '';
+          if (title && href && href.charAt(0) !== '#') {
+            items.push({
+              title: title,
+              href: navPath ? resolvePath(navPath, href) : href,
+              page: 0,
+              level: level
+            });
+          }
+        }
+        var ol = getDirectChild(li, 'ol');
+        if (ol) processList(ol, level + 1);
+      }
+    }
+
+    var ol = getDirectChild(tocNav, 'ol');
+    if (ol) processList(ol, 0);
+  } catch (e) {
+    console.warn('Nav parse error:', e);
+  }
+  return items;
+}
+
+async function parseEpubToc(zip, manifest, opfContent, opfDir) {
+  var tocItems = [];
+
+  var navMatch = opfContent.match(/<item[^>]*\sproperties\s*=\s*"[^"]*nav[^"]*"[^>]*\/?>/i);
+  if (navMatch) {
+    var navHrefMatch = navMatch[0].match(/href\s*=\s*"([^"]+)"/);
+    if (navHrefMatch) {
+      var navHref = navHrefMatch[1];
+      var navPath = opfDir ? opfDir + '/' + navHref : navHref;
+      var navFile = zip.file(navPath);
+      if (navFile) {
+        var navContent = await navFile.async('string');
+        tocItems = parseNavToc(navContent, navPath);
+      }
+    }
+  }
+
+  if (tocItems.length === 0) {
+    var ncxId = null;
+    var spineMatch = opfContent.match(/<spine[^>]*\stoc\s*=\s*"([^"]+)"/i);
+    if (spineMatch) ncxId = spineMatch[1];
+
+    var ncxHref = null;
+    if (ncxId && manifest[ncxId]) {
+      ncxHref = manifest[ncxId];
+    } else {
+      for (var id in manifest) {
+        if (/\.ncx$/i.test(manifest[id])) { ncxHref = manifest[id]; break; }
+      }
+    }
+
+    if (ncxHref) {
+      var ncxPath = opfDir ? opfDir + '/' + ncxHref : ncxHref;
+      var ncxFile = zip.file(ncxPath);
+      if (ncxFile) {
+        var ncxContent = await ncxFile.async('string');
+        tocItems = parseNcxToc(ncxContent, ncxPath);
+      }
+    }
+  }
+
+  if (tocItems.length === 0) {
+    var tocPath = opfDir ? opfDir + '/toc.ncx' : 'toc.ncx';
+    var tocFile = zip.file(tocPath);
+    if (tocFile) {
+      var tocContent = await tocFile.async('string');
+      tocItems = parseNcxToc(tocContent, tocPath);
+    }
+  }
+
+  return tocItems;
+}
+
 async function renderEpubFromBase64(base64Data) {
   try {
     var binaryString = atob(base64Data);
@@ -202,20 +373,26 @@ async function renderEpubFromBase64(base64Data) {
     document.getElementById('epub-css').textContent = cssContent;
 
     var bodyContent = '';
+    var chapterManifest = [];
     for (var i = 0; i < spine.length; i++) {
       var href = manifest[spine[i]];
       if (href && /\.(x?html?|htm)$/i.test(href)) {
         var chapterPath = opfDir ? opfDir + '/' + href : href;
+        chapterManifest.push(chapterPath);
         try {
           var chapterFile = zipInstance.file(chapterPath);
           if (chapterFile) {
             var content = await chapterFile.async('string');
             var bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-            if (bodyMatch) {
-              bodyContent += bodyMatch[1] + '\n';
-            } else {
-              bodyContent += content + '\n';
-            }
+            var bodyHtml = bodyMatch ? bodyMatch[1] : content;
+            var prefix = 'ch' + (chapterManifest.length - 1) + '_';
+            bodyHtml = bodyHtml.replace(/\bid\s*=\s*"([^"]+)"/gi, function(m, id) {
+              return 'id="' + prefix + id + '"';
+            });
+            bodyHtml = bodyHtml.replace(/\bid\s*=\s*'([^']+)'/gi, function(m, id) {
+              return "id='" + prefix + id + "'";
+            });
+            bodyContent += '<div class="epub-chapter" data-chapter="' + chapterPath + '" id="ch' + (chapterManifest.length - 1) + '">' + bodyHtml + '</div>\n';
           }
         } catch (e) {}
       }
@@ -223,6 +400,19 @@ async function renderEpubFromBase64(base64Data) {
 
     hideLoading();
     document.getElementById('content').innerHTML = bodyContent;
+
+    try {
+      var tocData = await parseEpubToc(zipInstance, manifest, opfContent, opfDir);
+      if (window.readerBridge) {
+        window.readerBridge.updateToc(JSON.stringify(tocData));
+      }
+      renderTocPanel(tocData);
+    } catch (e) {
+      console.warn('TOC parse error:', e);
+      if (window.readerBridge) {
+        window.readerBridge.updateToc('[]');
+      }
+    }
 
     await processImages();
     await waitForImages();
@@ -245,6 +435,157 @@ window.addEventListener('scroll', function() {
   }
 });
 
+function closestLink(element) {
+  while (element && element !== document) {
+    if (element.tagName === 'A') return element;
+    element = element.parentElement;
+  }
+  return null;
+}
+
+function closestChapter(element) {
+  while (element && element !== document) {
+    if (element.classList && element.classList.contains('epub-chapter')) return element;
+    element = element.parentElement;
+  }
+  return null;
+}
+
+function navigateToElement(element) {
+  if (!element) return;
+
+  if (__pageMode) {
+    var content = document.getElementById('content');
+    content.style.visibility = 'hidden';
+    setPageMode(false);
+    element.scrollIntoView();
+    var scrollY = window.scrollY;
+    setPageMode(true, scrollY);
+    content.style.visibility = '';
+  } else {
+    element.scrollIntoView({ behavior: 'instant', block: 'start' });
+    if (window.readerBridge) {
+      window.readerBridge.updateScroll(window.scrollY);
+    }
+  }
+}
+
+function navigateToChapter(resolvedHref) {
+  var parts = resolvedHref.split('#');
+  var chapterPath = parts[0];
+  var anchor = parts[1];
+
+  var chapterDiv = document.querySelector('.epub-chapter[data-chapter="' + chapterPath + '"]');
+  if (!chapterDiv) {
+    var filename = chapterPath.split('/').pop();
+    var chapters = document.querySelectorAll('.epub-chapter');
+    for (var i = 0; i < chapters.length; i++) {
+      var chPath = chapters[i].getAttribute('data-chapter') || '';
+      if (chPath.split('/').pop() === filename) { chapterDiv = chapters[i]; break; }
+    }
+  }
+  if (!chapterDiv) return;
+
+  var target = chapterDiv;
+  if (anchor) {
+    var chId = chapterDiv.id || '';
+    var anchorEl = document.getElementById(chId + '_' + anchor);
+    if (anchorEl) target = anchorEl;
+  }
+  navigateToElement(target);
+}
+
+function handleContentClick(e) {
+  var link = closestLink(e.target);
+  if (!link) return;
+
+  var href = link.getAttribute('href');
+  if (!href || href.indexOf('http') === 0 || href.indexOf('mailto:') === 0) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (href.charAt(0) === '#') {
+    var anchor = href.substring(1);
+    var chapterDiv = closestChapter(link);
+    if (chapterDiv) {
+      var target = document.getElementById(chapterDiv.id + '_' + anchor);
+      if (target) { navigateToElement(target); return; }
+    }
+    var fallback = document.getElementById(anchor);
+    if (fallback) navigateToElement(fallback);
+  } else {
+    var chDiv = closestChapter(link);
+    var chPath = chDiv ? chDiv.getAttribute('data-chapter') : '';
+    var resolved = chPath ? resolvePath(chPath, href) : href;
+    navigateToChapter(resolved);
+  }
+}
+
+function renderTocPanel(tocData) {
+  var listEl = document.getElementById('toc-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  if (!tocData || tocData.length === 0) {
+    var empty = document.createElement('div');
+    empty.className = 'toc-empty';
+    empty.textContent = '当前书籍没有章节划分';
+    listEl.appendChild(empty);
+    return;
+  }
+
+  for (var i = 0; i < tocData.length; i++) {
+    var item = document.createElement('a');
+    item.className = 'toc-item';
+    item.textContent = tocData[i].title;
+    item.style.paddingLeft = (20 + tocData[i].level * 16) + 'px';
+    (function(h) {
+      item.onclick = function(ev) {
+        ev.preventDefault();
+        closeTocPanel();
+        navigateToChapter(h);
+      };
+    })(tocData[i].href);
+    listEl.appendChild(item);
+  }
+}
+
+function openTocPanel() {
+  var panel = document.getElementById('toc-panel');
+  var overlay = document.getElementById('toc-overlay');
+  if (panel) panel.classList.add('open');
+  if (overlay) overlay.classList.add('show');
+}
+
+function closeTocPanel() {
+  var panel = document.getElementById('toc-panel');
+  var overlay = document.getElementById('toc-overlay');
+  if (panel) panel.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
+}
+
+window.goToChapter = function(href) {
+  navigateToChapter(href);
+};
+
+window.openToc = function() {
+  openTocPanel();
+};
+
+window.closeToc = function() {
+  closeTocPanel();
+};
+
+(function() {
+  var closeBtn = document.getElementById('toc-close-btn');
+  if (closeBtn) closeBtn.addEventListener('click', closeTocPanel);
+  var overlay = document.getElementById('toc-overlay');
+  if (overlay) overlay.addEventListener('click', closeTocPanel);
+  var content = document.getElementById('content');
+  if (content) content.addEventListener('click', handleContentClick);
+})();
+
 var __pageMode = false;
 var __touchStartX = 0;
 var __touchStartY = 0;
@@ -264,6 +605,11 @@ document.addEventListener('touchmove', function() {
 
 document.addEventListener('touchend', function(e) {
   if (!__touchMoved) {
+    var link = closestLink(e.target);
+    if (link) {
+      var href = link.getAttribute('href');
+      if (href && href.indexOf('http') !== 0 && href.indexOf('mailto:') !== 0) return;
+    }
     if (window.readerBridge) {
       window.readerBridge.requestToggleMenu();
     }

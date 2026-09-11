@@ -15,6 +15,13 @@ interface ReaderParams {
   author: string;
 }
 
+interface TocItem {
+  title: string;
+  href: string;
+  page: number;
+  level: number;
+}
+
 class ReaderBridge {
   updateScroll: (offset: number) => void = (_offset: number): void => {};
   onViewerReady: () => void = (): void => {};
@@ -22,6 +29,7 @@ class ReaderBridge {
   onPdfRendered: () => void = (): void => {};
   requestToggleMenu: () => void = (): void => {};
   updateTotalPages: (total: number) => void = (_total: number): void => {};
+  updateToc: (tocJson: string) => void = (_tocJson: string): void => {};
 }
 
 @Entry
@@ -61,6 +69,9 @@ struct BookReaderPage {
   @State rightPageContent: string = '';
   @State showProgressToast: boolean = false;
   @State agentQueryText: string = '你好';
+  @State tocItems: TocItem[] = [];
+  @State showToc: boolean = false;
+  @State tocLoaded: boolean = false;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -95,6 +106,7 @@ struct BookReaderPage {
     }
 
     if (this.fileFormat === 'txt') {
+      this.tocLoaded = true;
       try {
         const context = getContext().resourceManager;
         const fileData = await context.getRawFileContent(params.fileName);
@@ -160,6 +172,15 @@ struct BookReaderPage {
     };
     this.bridge.updateTotalPages = (total: number): void => {
       this._totalPages = total;
+    };
+    this.bridge.updateToc = (tocJson: string): void => {
+      try {
+        this.tocItems = JSON.parse(tocJson) as TocItem[];
+      } catch (e) {
+        console.error('Failed to parse TOC:', e);
+        this.tocItems = [];
+      }
+      this.tocLoaded = true;
     };
 
     this.loadBookListForAgent();
@@ -340,6 +361,25 @@ struct BookReaderPage {
       this.buildAgentQueryText();
     }
     this.showMenu = !this.showMenu;
+  }
+
+  openToc() {
+    this.showMenu = false;
+    this.showSettings = false;
+    this.showToc = true;
+  }
+
+  closeToc() {
+    this.showToc = false;
+  }
+
+  navigateByTocItem(item: TocItem) {
+    this.showToc = false;
+    if (this.fileFormat === 'epub' && item.href) {
+      this.webViewController.runJavaScript(`goToChapter(${JSON.stringify(item.href)})`);
+    } else if (this.fileFormat === 'pdf' && item.page > 0) {
+      this.webViewController.runJavaScript(`goToPage(${item.page})`);
+    }
   }
 
   applyPageMode(pageMode: boolean) {
@@ -592,6 +632,9 @@ struct BookReaderPage {
         }
         .layoutWeight(1)
         .padding(8)
+        .onClick(() => {
+          this.openToc();
+        })
 
         Column() {
           SymbolGlyph($r('sys.symbol.moon'))
@@ -624,6 +667,103 @@ struct BookReaderPage {
       .backgroundColor('#FFFFFF')
       .border({ width: { top: 1 }, color: '#E5E5E5' })
     }
+  }
+
+  @Builder
+  tocPanel() {
+    Row() {
+      Column() {
+        Row() {
+          Text('目录')
+            .fontSize(18)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#333333')
+
+          Blank()
+
+          Button() {
+            SymbolGlyph($r('sys.symbol.xmark'))
+              .fontSize(20)
+              .fontColor([Color.Black])
+          }
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.closeToc();
+          })
+        }
+        .width('100%')
+        .height(56)
+        .padding({ left: 20, right: 20 })
+        .backgroundColor('#FFF9F0')
+        .border({ width: { bottom: 1 }, color: '#E5E5E5' })
+
+        if (!this.tocLoaded) {
+          Column() {
+            LoadingProgress()
+              .width(36)
+              .height(36)
+              .color('#FF8C00')
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+        } else if (this.tocItems.length === 0) {
+          Column() {
+            Text('当前书籍没有章节划分')
+              .fontSize(14)
+              .fontColor('#999999')
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+        } else {
+          List() {
+            ForEach(this.tocItems, (item: TocItem, index?: number) => {
+              ListItem() {
+                Text(item.title)
+                  .fontSize(14)
+                  .fontColor('#333333')
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .width('100%')
+                  .padding({
+                    left: 20 + item.level * 16,
+                    right: 20,
+                    top: 14,
+                    bottom: 14
+                  })
+              }
+              .onClick(() => {
+                this.navigateByTocItem(item);
+              })
+            })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .scrollBar(BarState.Auto)
+          .divider({
+            strokeWidth: 1,
+            color: '#F5F5F5',
+            startMargin: 20,
+            endMargin: 0
+          })
+        }
+      }
+      .width('75%')
+      .height('100%')
+      .backgroundColor('#FFFFFF')
+
+      Column() {
+      }
+      .layoutWeight(1)
+      .height('100%')
+      .backgroundColor('#4D000000')
+      .onClick(() => {
+        this.closeToc();
+      })
+    }
+    .width('100%')
+    .height('100%')
   }
 
   @Builder
@@ -795,7 +935,7 @@ struct BookReaderPage {
       .javaScriptProxy({
         object: this.bridge as object,
         name: 'readerBridge',
-        methodList: ['updateScroll', 'onViewerReady', 'onEpubRendered', 'onPdfRendered', 'requestToggleMenu', 'updateTotalPages'],
+        methodList: ['updateScroll', 'onViewerReady', 'onEpubRendered', 'onPdfRendered', 'requestToggleMenu', 'updateTotalPages', 'updateToc'],
         controller: this.webViewController
       })
       .onAreaChange((oldValue: Area, newValue: Area) => {
@@ -867,6 +1007,10 @@ struct BookReaderPage {
         .borderRadius(20)
         .position({ x: '50%', y: '50%' })
         .translate({ x: '-50%', y: '-50%' })
+      }
+
+      if (this.showToc) {
+        this.tocPanel()
       }
     }
     .width('100%')
