@@ -3,7 +3,7 @@
     {
       "agentId": "agent-a2a-sieben-katze",
       "name": "柒喵伴读2.0",
-      "description": "提供书籍阅读上下文信息、当前页面内容、阅读进度查询等功能的智能阅读助手",
+      "description": "专为柒猫Demo开发的伴读智能体，为用户提供书籍阅读上下文信息、当前页面内容、阅读进度查询等功能的智能阅读助手",
       "provider": {
         "organization": "SiebenKatze",
         "url": "https://example.com"
@@ -53,7 +53,7 @@
         "deviceTypes": ["phone"],
         "minAppVersion": "1.0.0"
       },
-      "extension": "{\"protocolVersion\":\"1.0\",\"introduction\":\"欢迎使用柒喵伴读助手！我可以为您推荐书籍、总结当前阅读内容。请在阅读时随时向我提问。\"}"
+      "extension": "{\"protocolVersion\":\"1.0\",\"introduction\":\"欢迎使用柒喵伴读2.0！我可以为您推荐书籍、总结当前阅读内容。请在阅读时随时向我提问。\"}"
     }
   ]
 }
