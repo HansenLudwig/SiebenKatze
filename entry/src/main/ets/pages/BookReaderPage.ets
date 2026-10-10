@@ -72,6 +72,7 @@ struct BookReaderPage {
   @State tocItems: TocItem[] = [];
   @State showToc: boolean = false;
   @State tocLoaded: boolean = false;
+  @State isDarkMode: boolean = false;
 
   async aboutToAppear() {
     const mainWindow = await window.getLastWindow(getContext());
@@ -128,6 +129,7 @@ struct BookReaderPage {
     }
 
     this.writeLastBookData();
+    this.writeReadingState(true);
 
     this.bridge.updateScroll = (offset: number): void => {
       this.scrollOffset = offset;
@@ -137,6 +139,9 @@ struct BookReaderPage {
     };
     this.bridge.onEpubRendered = (): void => {
       this.webContentLoaded = true;
+      if (this.isDarkMode) {
+        this.webViewController.runJavaScript('setDarkMode(true)');
+      }
       if (this.isPageMode) {
         setTimeout(() => {
           this.webViewController.runJavaScript(`setPageMode(true, ${this.scrollOffset})`);
@@ -153,6 +158,9 @@ struct BookReaderPage {
     };
     this.bridge.onPdfRendered = (): void => {
       this.webContentLoaded = true;
+      if (this.isDarkMode) {
+        this.webViewController.runJavaScript('setDarkMode(true)');
+      }
       if (this.isPageMode) {
         setTimeout(() => {
           this.webViewController.runJavaScript(`setPageMode(true, ${this.scrollOffset})`);
@@ -343,12 +351,46 @@ struct BookReaderPage {
     AgentDataHelper.writeLastBook(getContext(this) as common.Context, JSON.stringify(lastBookObj));
   }
 
+  private writeReadingState(isReading: boolean): void {
+    if (isReading) {
+      const totalPages: number = this.fileFormat === 'txt' ? this.pages.length : this._totalPages;
+      let progressPercent: number = 0;
+      if (totalPages > 0) {
+        if (this.fileFormat === 'txt' && this.pages.length > 0) {
+          progressPercent = Math.min(Math.round(this.currentPage / totalPages * 100), 100);
+        } else if (this._totalPages > 0 && this.displayHeight > 0) {
+          const page: number = Math.floor(this.scrollOffset / this.displayHeight);
+          progressPercent = Math.min(Math.round(page / this._totalPages * 100), 100);
+        }
+      }
+      const stateObj: Record<string, Object> = {
+        'isReading': true,
+        'bookId': this.bookId,
+        'title': this.title,
+        'author': this.author,
+        'format': this.fileFormat.toUpperCase(),
+        'currentPage': this.currentPage,
+        'totalPages': totalPages,
+        'progressPercent': progressPercent,
+        'timestamp': Date.now()
+      };
+      AgentDataHelper.writeReadingState(getContext(this) as common.Context, JSON.stringify(stateObj));
+    } else {
+      const stateObj: Record<string, Object> = {
+        'isReading': false,
+        'timestamp': Date.now()
+      };
+      AgentDataHelper.writeReadingState(getContext(this) as common.Context, JSON.stringify(stateObj));
+    }
+  }
+
   onPageHide() {
     this.doSaveProgress();
   }
 
   async aboutToDisappear() {
     this.doSaveProgress();
+    this.writeReadingState(false);
     const mainWindow = await window.getLastWindow(getContext());
     mainWindow.setWindowSystemBarProperties({
       statusBarColor: '#F5F5F5',
@@ -371,6 +413,22 @@ struct BookReaderPage {
 
   closeToc() {
     this.showToc = false;
+  }
+
+  async toggleDarkMode() {
+    this.isDarkMode = !this.isDarkMode;
+    const mainWindow = await window.getLastWindow(getContext());
+    mainWindow.setWindowSystemBarProperties({
+      statusBarColor: this.isDarkMode ? '#1A1A1A' : '#FFF9F0',
+      statusBarContentColor: this.isDarkMode ? '#E0E0E0' : '#333333'
+    });
+    if (this.fileFormat !== 'txt') {
+      try {
+        this.webViewController.runJavaScript(`setDarkMode(${this.isDarkMode})`);
+      } catch (e) {
+        console.warn('Failed to set dark mode in WebView:', e);
+      }
+    }
   }
 
   navigateByTocItem(item: TocItem) {
@@ -584,15 +642,15 @@ struct BookReaderPage {
         Column() {
           Text('翻页方式')
             .fontSize(15)
-            .fontColor('#333333')
+            .fontColor(this.isDarkMode ? '#E0E0E0' : '#333333')
             .fontWeight(FontWeight.Medium)
             .margin({ bottom: 12 })
 
           Row() {
             Button('滚动')
               .fontSize(14)
-              .fontColor(this.isPageMode ? '#666666' : '#FFFFFF')
-              .backgroundColor(this.isPageMode ? '#F0F0F0' : '#FF8C00')
+              .fontColor(this.isPageMode ? (this.isDarkMode ? '#999999' : '#666666') : '#FFFFFF')
+              .backgroundColor(this.isPageMode ? (this.isDarkMode ? '#3A3A3A' : '#F0F0F0') : '#FF8C00')
               .borderRadius(20)
               .height(36)
               .layoutWeight(1)
@@ -602,8 +660,8 @@ struct BookReaderPage {
 
             Button('侧滑')
               .fontSize(14)
-              .fontColor(this.isPageMode ? '#FFFFFF' : '#666666')
-              .backgroundColor(this.isPageMode ? '#FF8C00' : '#F0F0F0')
+              .fontColor(this.isPageMode ? '#FFFFFF' : (this.isDarkMode ? '#999999' : '#666666'))
+              .backgroundColor(this.isPageMode ? '#FF8C00' : (this.isDarkMode ? '#3A3A3A' : '#F0F0F0'))
               .borderRadius(20)
               .height(36)
               .layoutWeight(1)
@@ -616,18 +674,18 @@ struct BookReaderPage {
         }
         .width('100%')
         .padding({ left: 20, right: 20, top: 16, bottom: 16 })
-        .backgroundColor('#FFFFFF')
-        .border({ width: { bottom: 1 }, color: '#E5E5E5' })
+        .backgroundColor(this.isDarkMode ? '#2D2D2D' : '#FFFFFF')
+        .border({ width: { bottom: 1 }, color: this.isDarkMode ? '#3A3A3A' : '#E5E5E5' })
       }
 
       Row() {
         Column() {
           SymbolGlyph($r('sys.symbol.list_bullet'))
             .fontSize(24)
-            .fontColor([Color.Black])
+            .fontColor([this.isDarkMode ? '#E0E0E0' : Color.Black])
           Text('目录')
             .fontSize(12)
-            .fontColor('#333333')
+            .fontColor(this.isDarkMode ? '#E0E0E0' : '#333333')
             .margin({ top: 4 })
         }
         .layoutWeight(1)
@@ -637,24 +695,27 @@ struct BookReaderPage {
         })
 
         Column() {
-          SymbolGlyph($r('sys.symbol.moon'))
+          SymbolGlyph($r(this.isDarkMode ? 'sys.symbol.sun_max' : 'sys.symbol.moon'))
             .fontSize(24)
-            .fontColor([Color.Black])
-          Text('夜间模式')
+            .fontColor([this.isDarkMode ? '#FF8C00' : Color.Black])
+          Text(this.isDarkMode ? '日间模式' : '夜间模式')
             .fontSize(12)
-            .fontColor('#333333')
+            .fontColor(this.isDarkMode ? '#FF8C00' : '#333333')
             .margin({ top: 4 })
         }
         .layoutWeight(1)
         .padding(8)
+        .onClick(() => {
+          this.toggleDarkMode();
+        })
 
         Column() {
           SymbolGlyph($r('sys.symbol.gearshape'))
             .fontSize(24)
-            .fontColor([Color.Black])
+            .fontColor([this.isDarkMode ? '#E0E0E0' : Color.Black])
           Text('设置')
             .fontSize(12)
-            .fontColor('#333333')
+            .fontColor(this.isDarkMode ? '#E0E0E0' : '#333333')
             .margin({ top: 4 })
         }
         .layoutWeight(1)
@@ -664,8 +725,8 @@ struct BookReaderPage {
         })
       }
       .width('100%')
-      .backgroundColor('#FFFFFF')
-      .border({ width: { top: 1 }, color: '#E5E5E5' })
+      .backgroundColor(this.isDarkMode ? '#2D2D2D' : '#FFFFFF')
+      .border({ width: { top: 1 }, color: this.isDarkMode ? '#3A3A3A' : '#E5E5E5' })
     }
   }
 
@@ -677,14 +738,14 @@ struct BookReaderPage {
           Text('目录')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor(this.isDarkMode ? '#E0E0E0' : '#333333')
 
           Blank()
 
           Button() {
             SymbolGlyph($r('sys.symbol.xmark'))
               .fontSize(20)
-              .fontColor([Color.Black])
+              .fontColor([this.isDarkMode ? '#999999' : Color.Black])
           }
           .backgroundColor(Color.Transparent)
           .onClick(() => {
@@ -694,8 +755,8 @@ struct BookReaderPage {
         .width('100%')
         .height(56)
         .padding({ left: 20, right: 20 })
-        .backgroundColor('#FFF9F0')
-        .border({ width: { bottom: 1 }, color: '#E5E5E5' })
+        .backgroundColor(this.isDarkMode ? '#1A1A1A' : '#FFF9F0')
+        .border({ width: { bottom: 1 }, color: this.isDarkMode ? '#3A3A3A' : '#E5E5E5' })
 
         if (!this.tocLoaded) {
           Column() {
@@ -711,7 +772,7 @@ struct BookReaderPage {
           Column() {
             Text('当前书籍没有章节划分')
               .fontSize(14)
-              .fontColor('#999999')
+              .fontColor(this.isDarkMode ? '#666666' : '#999999')
           }
           .width('100%')
           .layoutWeight(1)
@@ -722,7 +783,7 @@ struct BookReaderPage {
               ListItem() {
                 Text(item.title)
                   .fontSize(14)
-                  .fontColor('#333333')
+                  .fontColor(this.isDarkMode ? '#D4D4D4' : '#333333')
                   .maxLines(1)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
                   .width('100%')
@@ -743,7 +804,7 @@ struct BookReaderPage {
           .scrollBar(BarState.Auto)
           .divider({
             strokeWidth: 1,
-            color: '#F5F5F5',
+            color: this.isDarkMode ? '#3A3A3A' : '#F5F5F5',
             startMargin: 20,
             endMargin: 0
           })
@@ -751,7 +812,7 @@ struct BookReaderPage {
       }
       .width('75%')
       .height('100%')
-      .backgroundColor('#FFFFFF')
+      .backgroundColor(this.isDarkMode ? '#2D2D2D' : '#FFFFFF')
 
       Column() {
       }
@@ -772,7 +833,7 @@ struct BookReaderPage {
       Column() {
         Text(this.content)
           .fontSize(this.fontSize)
-          .fontColor('#333333')
+          .fontColor(this.isDarkMode ? '#D4D4D4' : '#333333')
           .lineHeight(this.lineHeight)
           .padding({ left: this.textPaddingH, right: this.textPaddingH, top: this.textPaddingV, bottom: this.textPaddingV })
           .onClick(() => {
@@ -811,7 +872,7 @@ struct BookReaderPage {
       Column() {
         Text(this.rightPageContent)
           .fontSize(this.fontSize)
-          .fontColor('#333333')
+          .fontColor(this.isDarkMode ? '#D4D4D4' : '#333333')
           .lineHeight(this.lineHeight)
           .padding({ left: this.textPaddingH, right: this.textPaddingH, top: this.textPaddingV, bottom: this.textPaddingV })
           .width('100%')
@@ -824,7 +885,7 @@ struct BookReaderPage {
       Column() {
         Text(this.midPageContent)
           .fontSize(this.fontSize)
-          .fontColor('#333333')
+          .fontColor(this.isDarkMode ? '#D4D4D4' : '#333333')
           .lineHeight(this.lineHeight)
           .padding({ left: this.textPaddingH, right: this.textPaddingH, top: this.textPaddingV, bottom: this.textPaddingV })
           .width('100%')
@@ -838,7 +899,7 @@ struct BookReaderPage {
       Column() {
         Text(this.leftPageContent)
           .fontSize(this.fontSize)
-          .fontColor('#333333')
+          .fontColor(this.isDarkMode ? '#D4D4D4' : '#333333')
           .lineHeight(this.lineHeight)
           .padding({ left: this.textPaddingH, right: this.textPaddingH, top: this.textPaddingV, bottom: this.textPaddingV })
           .width('100%')
@@ -852,8 +913,8 @@ struct BookReaderPage {
       if (!this.showMenu) {
         Text(`${this.currentPage + 1}/${this.pages.length}`)
           .fontSize(12)
-          .fontColor('#000000')
-          .backgroundColor('#80000000')
+          .fontColor('#FFFFFF')
+          .backgroundColor(this.isDarkMode ? '#80333333' : '#80000000')
           .padding({ left: 8, right: 8, top: 4, bottom: 4 })
           .borderRadius(10)
           .position({ x: '100%', y: '100%' })
@@ -928,7 +989,7 @@ struct BookReaderPage {
     })
       .width('100%')
       .layoutWeight(1)
-      .backgroundColor('#FFF9F0')
+      .backgroundColor(this.isDarkMode ? '#1A1A1A' : '#FFF9F0')
       .domStorageAccess(true)
       .javaScriptAccess(true)
       .fileAccess(true)
@@ -971,7 +1032,7 @@ struct BookReaderPage {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor('#FFF9F0')
+      .backgroundColor(this.isDarkMode ? '#1A1A1A' : '#FFF9F0')
 
       if (this.showMenu) {
         Column() {

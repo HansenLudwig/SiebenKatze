@@ -7,6 +7,7 @@ const FILE_BOOK_LIST: string = 'agent_book_list.json';
 const FILE_BOOK_CONTEXT: string = 'agent_book_context.json';
 const FILE_LAST_BOOK: string = 'agent_last_book.json';
 const FILE_READING_HISTORY: string = 'agent_reading_history.json';
+const FILE_READING_STATE: string = 'agent_reading_state.json';
 
 export class AgentDataHelper {
   static writeBookList(context: common.Context, jsonStr: string): void {
@@ -25,6 +26,10 @@ export class AgentDataHelper {
     AgentDataHelper.writeToFile(context, FILE_READING_HISTORY, jsonStr);
   }
 
+  static writeReadingState(context: common.Context, jsonStr: string): void {
+    AgentDataHelper.writeToFile(context, FILE_READING_STATE, jsonStr);
+  }
+
   static readBookList(context: common.Context): string {
     return AgentDataHelper.readFromFile(context, FILE_BOOK_LIST);
   }
@@ -39,6 +44,10 @@ export class AgentDataHelper {
 
   static readReadingHistory(context: common.Context): string {
     return AgentDataHelper.readFromFile(context, FILE_READING_HISTORY);
+  }
+
+  static readReadingState(context: common.Context): string {
+    return AgentDataHelper.readFromFile(context, FILE_READING_STATE);
   }
 
   private static writeToFile(context: common.Context, fileName: string, data: string): void {

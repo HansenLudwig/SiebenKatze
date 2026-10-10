@@ -1,6 +1,7 @@
-import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { AbilityConstant, ConfigurationConstant, UIAbility, Want, common } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { AgentDataHelper } from '../model/AgentDataHelper';
 
 const DOMAIN = 0x0000;
 
@@ -11,6 +12,24 @@ export default class EntryAbility extends UIAbility {
     } catch (err) {
       hilog.error(DOMAIN, 'testTag', 'Failed to set colorMode. Cause: %{public}s', JSON.stringify(err));
     }
+
+    try {
+      const stateJson: string = AgentDataHelper.readReadingState(this.context as common.Context);
+      if (stateJson && stateJson.length > 0) {
+        const state: Record<string, Object> = JSON.parse(stateJson) as Record<string, Object>;
+        if (state['isReading'] === true) {
+          const resetObj: Record<string, Object> = {
+            'isReading': false,
+            'timestamp': Date.now()
+          };
+          AgentDataHelper.writeReadingState(this.context as common.Context, JSON.stringify(resetObj));
+          hilog.info(DOMAIN, 'testTag', 'Reset stale reading state to not_reading');
+        }
+      }
+    } catch (e) {
+      hilog.error(DOMAIN, 'testTag', 'Failed to reset reading state: %{public}s', JSON.stringify(e));
+    }
+
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
   }
 
